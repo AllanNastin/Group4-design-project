@@ -1,3 +1,4 @@
+import ListingsParser from './components/ListingsParser';
 import logo from './logo.svg';
 import './App.css';
 
@@ -17,6 +18,7 @@ function App() {
         >
           Learn React
         </a>
+        <ListingsParser />
       </header>
     </div>
   );
