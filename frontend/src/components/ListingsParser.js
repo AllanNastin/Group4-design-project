@@ -7,7 +7,7 @@ const ListingsParser = () => {
 
     // read JSON and convert
     useEffect(() => {
-        fetch("/sample.json") // make sure JSON file under the public folder
+        fetch("/Sample.json") // make sure JSON file under the public folder
             .then((response) => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
