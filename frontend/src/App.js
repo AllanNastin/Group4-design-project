@@ -1,4 +1,6 @@
 import ListingsParser from './components/ListingsParser';
+import SearchForm from './components/SearchForm';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import logo from './logo.svg';
 import './App.css';
 
@@ -18,6 +20,7 @@ function App() {
         >
           Learn React
         </a>
+        <SearchForm/>
         <ListingsParser />
       </header>
     </div>
