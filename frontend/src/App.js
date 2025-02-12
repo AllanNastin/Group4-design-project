@@ -1,29 +1,17 @@
-import ListingsParser from './components/ListingsParser';
-import logo from './logo.svg';
-import './App.css';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import IndividualListingPage from "./pages/IndividualListingPage";
+import IndividualListings from "./Pages/IndividualListings";
+import ListingsParser from "./components/ListingsParser";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <ListingsParser />
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<ListingsParser />} />
+        <Route path="/listing/:id" element={<IndividualListings />} />
+      </Routes>
+    </Router>
   );
 }
 
 export default App;
+
