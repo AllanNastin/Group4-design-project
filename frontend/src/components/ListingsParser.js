@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const ListingsParser = () => {
     const [listingsData, setListingsData] = useState(null);
@@ -25,6 +26,12 @@ const ListingsParser = () => {
             });
     }, []);
 
+    const navigate = useNavigate();
+
+    const handleListingClick = (listing) => {
+        navigate("/listing/" + listing.listing_id);
+    };
+
     if (loading) return <p>Loading property listings...</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
     if (!listingsData || !listingsData.listings || listingsData.listings.length === 0)
@@ -36,7 +43,7 @@ const ListingsParser = () => {
             <h2>Total Results: {listingsData.total_results}</h2>
 
             {listingsData.listings.map((listing) => (
-                <div key={listing.listing_id} style={{ border: "1px solid #ddd", padding: "10px", marginBottom: "10px" }}>
+                <div key={listing.listing_id} style={{ border: "1px solid #ddd", padding: "10px", marginBottom: "10px" }} onClick={() => handleListingClick(listing)}>
                     <h3>Listing ID: {listing.listing_id}</h3>
                     <p><strong>Address:</strong> {listing.address}</p>
                     <p><strong>Eircode:</strong> {listing.eircode}</p>
