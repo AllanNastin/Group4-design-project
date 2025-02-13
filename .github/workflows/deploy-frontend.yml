@@ -22,11 +22,11 @@ jobs:
 
       - name: 🏗️ create frontend Docker image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/frontend-app:latest ./frontend
+          docker build -t ghcr.io/AllanNastin/${{ github.repository_owner }}/frontend-app:latest ./frontend
 
       - name: 🚀 push Docker image to Docker Hub
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/frontend-app:latest
+          docker push ghcr.io/AllanNastin/${{ github.repository_owner }}/frontend-app:latest
 
 
 
