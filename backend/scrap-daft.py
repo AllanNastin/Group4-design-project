@@ -106,14 +106,16 @@ def daftScrapper() -> None:
     try:
         with pyodbc.connect(conn_str) as conn:
             with conn.cursor() as cursor:
-                for page in range(0,12650, 20): # FIXME: hardcoded number of pages
-                    url = 'https://www.daft.ie/property-for-sale/ireland'+ str(page) +'&pageSize=20'
-    
+                for page in range(0,12650, 20):
+                    url = 'https://www.daft.ie/property-for-sale/ireland?from='+ str(page) +'&pageSize=20'
                     listings = get_property_listings(url)
             
                     for listing in listings:
                          # Insert into PropertyDetails
                         cursor.execute("""
+                        DECLARE @property_id INT;
+                        DECLARE @newPropertyId INT;
+
                         IF NOT EXISTS (SELECT 1 FROM PropertyDetails WHERE Eircode = ? OR Link = ?)
                         
                         BEGIN
@@ -126,26 +128,25 @@ def daftScrapper() -> None:
                         END
                         ELSE
                         BEGIN
-                            SELECT @property_id = PropertyId FROM PropertyDetails WHERE Eircode = ? OR Link = ?;
+                            SELECT @property_id = Id FROM PropertyDetails WHERE Eircode = ? OR Link = ?;
                             IF NOT EXISTS (
                                 SELECT 1 FROM PropertyPriceHistory
                                 WHERE PropertyId = @property_id
                                 AND Price = ?
                             )
-                            INSERT INTO PropertyPriceHistory (PropertyId, Price, Timestamp)
-                            VALUES (SELECT Id FROM PropertyDetails WHERE Eircode = ? OR Link = ?, ?, ?);
+                            BEGIN
+                                INSERT INTO PropertyPriceHistory (PropertyId, Price, Timestamp)
+                                VALUES (@property_id, ?, ?);
+                            END
                         END
-                        """,listing['eircode'],listing['link'], listing['address'], listing['eircode'], listing['bed'], listing['bath'], listing['size'], listing['link'])
-
-                        # Get the inserted PropertyId
-                        cursor.execute("SELECT @@IDENTITY AS Id")
-                        property_id = cursor.fetchone()[0]
-
-                        # Insert into PropertyPriceHistory
-                        cursor.execute("""
-                        INSERT INTO PropertyPriceHistory (PropertyId, Price, Timestamp)
-                        VALUES (?, ?, ?)
-                        """, property_id, convert_price(listing['price']), datetime.datetime.now())
+                        """,
+                        listing['eircode'],listing['link'], listing['address'],
+                        listing['eircode'], listing['bed'], listing['bath'],
+                        listing['size'], listing['link'], convert_price(listing['price']), datetime.datetime.now(),
+                        listing['eircode'], listing['link'], convert_price(listing['price']),
+                        convert_price(listing['price']), datetime.datetime.now()
+                        )
+                        
                         conn.commit()
                     logging.info(f"Page {page//20+1} done")
     except Exception as e:
