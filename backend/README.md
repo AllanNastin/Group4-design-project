@@ -1,3 +1,6 @@
 # Backend
+### Install requirements
+`pip install -r requirements.txt`
 
-This directory contains the backend code for the project.
+### Run Server
+`python Server.py`
