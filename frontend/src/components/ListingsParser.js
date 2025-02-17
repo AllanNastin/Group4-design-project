@@ -6,6 +6,7 @@ const ListingsParser = () => {
     const [listingsData, setListingsData] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     // Fetch listings data from JSON file
     useEffect(() => {
@@ -27,8 +28,6 @@ const ListingsParser = () => {
             });
     }, []);
 
-    const navigate = useNavigate();
-
     const handleListingClick = (listing) => {
         navigate("/listing/" + listing.listing_id);
     };
@@ -40,6 +39,11 @@ const ListingsParser = () => {
 
     return (
         <Container className="mt-5">
+            {/* Back Button */}
+            <Button variant="secondary" className="mb-4" onClick={() => navigate(-1)}>
+                ← Back
+            </Button>
+
             <h1 className="text-center mb-4">Property Listings</h1>
             <h5 className="text-muted text-center">Total Results: {listingsData.total_results}</h5>
             <Row className="mt-4">
