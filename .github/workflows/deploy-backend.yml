@@ -32,7 +32,7 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: ghcr.io/allannastin/ethical-ai-server:latest
+          tags: ghcr.io/allannastin/gpd4-backend:latest
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
