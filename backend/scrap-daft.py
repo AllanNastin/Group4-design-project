@@ -17,7 +17,7 @@ create_property_table_query = """
         Link NVARCHAR(255)
     );
     """
-    create_price_table_query = """
+create_price_table_query = """
     CREATE TABLE PropertyPriceHistory (
         Id INT AUTO_INCREMENT PRIMARY KEY,
         PropertyId INT,
