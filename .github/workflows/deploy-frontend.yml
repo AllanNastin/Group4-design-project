@@ -3,7 +3,10 @@ name: Build Frontend
 on:
   push:
     branches:
-      - main  # when main has merge/push will auto deploy
+      - "**"  # 触发所有分支的 push
+  pull_request:
+    branches:
+      - main
 
 jobs:
 
