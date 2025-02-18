@@ -3,7 +3,7 @@ name: Build Frontend
 on:
   push:
     branches:
-      - main  # when main has merge/push will auto deploy
+      - TDDWWU-workflows-check  # when main has merge/push will auto deploy
 
 jobs:
 
