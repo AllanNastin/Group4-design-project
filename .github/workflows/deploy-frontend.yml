@@ -3,7 +3,7 @@ name: Build Frontend
 on:
   push:
     branches:
-      - "**"  # 触发所有分支的 push
+      - "**"
   pull_request:
     branches:
       - main
