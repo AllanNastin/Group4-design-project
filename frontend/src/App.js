@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import IndividualListings from "./Pages/IndividualListings";
 import ListingsParser from "./components/ListingsParser";
 
+// for now we use v6 instead of v7
 function App() {
   return (
     <Router>
@@ -14,4 +15,3 @@ function App() {
 }
 
 export default App;
-
