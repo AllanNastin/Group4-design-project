@@ -5,6 +5,28 @@ import os
 import requests
 from bs4 import BeautifulSoup
 import re
+import mysql.connector
+
+create_property_table_query = """
+    CREATE TABLE PropertyDetails (
+        Id INT AUTO_INCREMENT PRIMARY KEY,
+        Address NVARCHAR(255),
+        Eircode NVARCHAR(10),
+        Bed INT,
+        Bath INT,
+        Size FLOAT,
+        Link NVARCHAR(255)
+    );
+    """
+    create_price_table_query = """
+    CREATE TABLE PropertyPriceHistory (
+        Id INT AUTO_INCREMENT PRIMARY KEY,
+        PropertyId INT,
+        Price FLOAT,
+        Timestamp DATETIME,
+        FOREIGN KEY (PropertyId) REFERENCES PropertyDetails(Id)
+    );
+    """
 
 def convert_price(price_str):
     if price_str == 'N/A':
@@ -71,83 +93,44 @@ def get_property_listings(url):
 
     return toReturn
 
-
-def daftScrapper() -> None:
-    
-    logging.info('Function triggered')
-    today = datetime.date.today()
-    # formatted_today = today.strftime("%d-%m-%Y")
-    logging.info(today)
-
-    # connect to azure sql
-    conn_str = os.getenv('SQL_CONN_STR')
-    
-    create_property_table_query = """
-    CREATE TABLE PropertyDetails (
-        Id INT IDENTITY(1,1) PRIMARY KEY,
-        Address NVARCHAR(255),
-        Eircode NVARCHAR(10),
-        Bed INT,
-        Bath INT,
-        Size FLOAT,
-        Link NVARCHAR(255)
-    );
-    """
-    create_price_table_query = """
-    CREATE TABLE PropertyPriceHistory (
-        Id INT IDENTITY(1,1) PRIMARY KEY,
-        PropertyId INT,
-        Price FLOAT,
-        Timestamp DATETIME,
-        FOREIGN KEY (PropertyId) REFERENCES PropertyDetails(Id)
-    );
-    """
-
+def daftScrapper():
+    load_dotenv()
     try:
-        with pyodbc.connect(conn_str) as conn:
-            with conn.cursor() as cursor:
-                for page in range(0,12650, 20):
-                    url = 'https://www.daft.ie/property-for-sale/ireland?from='+ str(page) +'&pageSize=20'
-                    listings = get_property_listings(url)
-            
-                    for listing in listings:
-                         # Insert into PropertyDetails
+        conn = mysql.connector.connect(
+            host=os.getenv('MYSQL_Host'),
+            port=os.getenv('MYSQL_Port'),
+            user=os.getenv('MYSQL_User'),
+            password=os.getenv('MYSQL_Password'),
+            database=os.getenv('MYSQL_Database')
+        )
+
+        with conn.cursor() as cursor:
+            for page in range(0,12650,20):#range(0,12650, 20):
+                url = 'https://www.daft.ie/property-for-sale/ireland?from='+ str(page) +'&pageSize=20'
+                listings = get_property_listings(url)
+                for listing in listings:
+
+                    cursor.execute("""
+                    INSERT INTO PropertyDetails (Address, Eircode, Bed, Bath, Size, Link)
+                                    SELECT %s, %s, %s, %s, %s, %s
+                                    WHERE NOT EXISTS (SELECT 1 FROM PropertyDetails WHERE Eircode = %s OR Link = %s);
+                    """, (listing['address'], listing['eircode'], listing['bed'], listing['bath'],
+                            listing['size'], listing['link'], listing['eircode'],listing['link']))
+                    
+                    conn.commit()
+
+                    cursor.execute("""
+                        SELECT Id FROM PropertyDetails WHERE Eircode = %s OR Link = %s LIMIT 1;
+                    """, (listing['eircode'], listing['link']))
+                    newId = cursor.fetchone()
+                    print(newId)
+                    if newId:
+                        newId = newId[0]
                         cursor.execute("""
-                        DECLARE @property_id INT;
-                        DECLARE @newPropertyId INT;
-
-                        IF NOT EXISTS (SELECT 1 FROM PropertyDetails WHERE Eircode = ? OR Link = ?)
-                        
-                        BEGIN
-                            INSERT INTO PropertyDetails (Address, Eircode, Bed, Bath, Size, Link)
-                            VALUES (?, ?, ?, ?, ?, ?);
-
-                            SET @newPropertyId = SCOPE_IDENTITY();
-                            INSERT INTO PropertyPriceHistory (PropertyId, Price, Timestamp)
-                            VALUES (@newPropertyId, ?, ?);
-                        END
-                        ELSE
-                        BEGIN
-                            SELECT @property_id = Id FROM PropertyDetails WHERE Eircode = ? OR Link = ?;
-                            IF NOT EXISTS (
-                                SELECT 1 FROM PropertyPriceHistory
-                                WHERE PropertyId = @property_id
-                                AND Price = ?
-                            )
-                            BEGIN
-                                INSERT INTO PropertyPriceHistory (PropertyId, Price, Timestamp)
-                                VALUES (@property_id, ?, ?);
-                            END
-                        END
-                        """,
-                        listing['eircode'],listing['link'], listing['address'],
-                        listing['eircode'], listing['bed'], listing['bath'],
-                        listing['size'], listing['link'], convert_price(listing['price']), datetime.datetime.now(),
-                        listing['eircode'], listing['link'], convert_price(listing['price']),
-                        convert_price(listing['price']), datetime.datetime.now()
-                        )
-                        
+                                INSERT INTO PropertyPriceHistory (PropertyId, Price, Timestamp) VALUES (%s, %s, %s);
+                        """,( newId, listing['price'], datetime.datetime.now()))
                         conn.commit()
-                    logging.info(f"Page {page//20+1} done")
-    except Exception as e:
-        logging.error(f"Error connecting to the database: {e}")
+                print(f"Page {page // 20 + 1} done")
+        
+    except mysql.connector.Error as e:
+        print(f"Error from mysql connector: {e}")
