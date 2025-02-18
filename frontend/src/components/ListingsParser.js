@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Container, Row, Col, Card, Button } from "react-bootstrap";
 
 const ListingsParser = () => {
     const [listingsData, setListingsData] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
-    // read JSON and convert
+    // Fetch listings data from JSON file
     useEffect(() => {
-        fetch("/Sample.json") // make sure JSON file under the public folder
+        fetch("/Sample.json")
             .then((response) => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-                return response.json(); // convert JSON
+                return response.json();
             })
             .then((jsonData) => {
-                setListingsData(jsonData); // save in state
+                setListingsData(jsonData);
             })
             .catch((err) => {
                 setError(`Error loading JSON: ${err.message}`);
@@ -25,40 +28,48 @@ const ListingsParser = () => {
             });
     }, []);
 
-    if (loading) return <p>Loading property listings...</p>;
-    if (error) return <p style={{ color: "red" }}>{error}</p>;
+    const handleListingClick = (listing) => {
+        navigate("/listing/" + listing.listing_id);
+    };
+
+    if (loading) return <p className="text-center mt-5">Loading property listings...</p>;
+    if (error) return <p className="text-danger text-center mt-5">{error}</p>;
     if (!listingsData || !listingsData.listings || listingsData.listings.length === 0)
-        return <p>No properties found.</p>;
+        return <p className="text-center mt-5">No properties found.</p>;
 
     return (
-        <div>
-            <h1>Property Listings</h1>
-            <h2>Total Results: {listingsData.total_results}</h2>
+        <Container className="mt-5">
+            {/* Back Button */}
+            <Button variant="secondary" className="mb-4" onClick={() => navigate(-1)}>
+                ← Back
+            </Button>
 
-            {listingsData.listings.map((listing) => (
-                <div key={listing.listing_id} style={{ border: "1px solid #ddd", padding: "10px", marginBottom: "10px" }}>
-                    <h3>Listing ID: {listing.listing_id}</h3>
-                    <p><strong>Address:</strong> {listing.address}</p>
-                    <p><strong>Eircode:</strong> {listing.eircode}</p>
-                    <p><strong>Bedrooms:</strong> {listing.bedrooms}</p>
-                    <p><strong>Bathrooms:</strong> {listing.bathrooms}</p>
-                    <p><strong>Size:</strong> {listing.size} sq ft</p>
-                    <p><strong>Price:</strong> €{listing.price.toLocaleString()}</p>
-                    <p><strong>Current Price:</strong> €{listing.current_price.toLocaleString()}</p>
-                    <p><strong>Commute Times:</strong> 🚗 {listing.commute_times?.car} min | 🚶‍ {listing.commute_times?.walk} min</p>
-
-                    {listing.images && listing.images.length > 0 && (
-                        <div>
-                            <h4>Property Images:</h4>
-                            {listing.images.map((img, imgIndex) => (
-                                <img key={imgIndex} src={img} alt={`Property ${listing.listing_id}`} />
-
-                            ))}
-                        </div>
-                    )}
-                </div>
-            ))}
-        </div>
+            <h1 className="text-center mb-4">Property Listings</h1>
+            <h5 className="text-muted text-center">Total Results: {listingsData.total_results}</h5>
+            <Row className="mt-4">
+                {listingsData.listings.map((listing) => (
+                    <Col key={listing.listing_id} md={4} className="mb-4">
+                        <Card className="shadow-lg">
+                            {listing.images && listing.images.length > 0 && (
+                                <Card.Img variant="top" src={listing.images[0]} alt={listing.address} />
+                            )}
+                            <Card.Body>
+                                <Card.Title className="fs-5">{listing.address}</Card.Title>
+                                <Card.Text>
+                                    <strong>Price:</strong> €{listing.price.toLocaleString()} <br />
+                                    <strong>Bedrooms:</strong> {listing.bedrooms} | <strong>Bathrooms:</strong> {listing.bathrooms} <br />
+                                    <strong>Size:</strong> {listing.size} sq ft <br />
+                                    🚗 {listing.commute_times?.car} min | 🚶 {listing.commute_times?.walk} min
+                                </Card.Text>
+                                <Button variant="primary" onClick={() => handleListingClick(listing)}>
+                                    View Details
+                                </Button>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                ))}
+            </Row>
+        </Container>
     );
 };
 

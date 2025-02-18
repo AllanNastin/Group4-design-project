@@ -1,0 +1,59 @@
+{
+  "total_results": 3,
+  "listings": [
+    {
+      "listing_id": 5,
+      "address": "96 Watson Drive, Killiney, Co. Dublin, A96N4F7",
+      "eircode": "A96 N4F7",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "size": 1200,
+      "price": 450000,
+      "current_price": 450000,
+      "commute_times": {
+        "car": "25",
+        "walk": "35"
+      },
+      "images": [
+        "https://blob.exampleserver.com",
+        "https://blob2.exampleserver.com"
+      ]
+    },
+    {
+      "listing_id": 6,
+      "address": "Apt.12, block E, The point campus, Dublin 2, D02Y9T2",
+      "eircode": "D02 Y9T2",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "size": 1500,
+      "price": 600000,
+      "current_price": 580000,
+      "commute_times": {
+        "car": "20",
+        "walk": "30"
+      },
+      "images": [
+        "https://blob.exampleserver.com",
+        "https://blob2.exampleserver.com"
+      ]
+    },
+    {
+      "listing_id": 7,
+      "address": "45 CherryWood, Dundrum, Dublin 18, D18X5V9",
+      "eircode": "D18 X5V9",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "size": 900,
+      "price": 350000,
+      "current_price": 340000,
+      "commute_times": {
+        "car": "15",
+        "walk": "25"
+      },
+      "images": [
+        "https://blob.exampleserver.com",
+        "https://blob2.exampleserver.com"
+      ]
+    }
+  ]
+}
