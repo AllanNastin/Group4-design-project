@@ -34,6 +34,8 @@ jobs:
           npm test -- --ci --coverage src/App.test.js src/setupTests.test.js  # test
 
   build-and-deploy:
+    needs: test
+    if: success() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
@@ -49,7 +51,7 @@ jobs:
 
       - name: 🏗️ create frontend Docker image
         run: |
-          docker build -t ghcr.io/allannastin/frontend-app:latest ./frontend
+          docker build --no-cache -t ghcr.io/allannastin/frontend-app:latest ./frontend
 
       - name: 🚀 push Docker image to Docker Hub
         run: |
