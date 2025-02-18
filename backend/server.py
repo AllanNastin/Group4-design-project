@@ -12,6 +12,13 @@ def main():
 @app.route("/getListings", methods=['GET'])
 def getListings():
     try:
+        listing_type = request.args.get('type')
+        location = request.args.get('location')
+        commute = request.args.get('commute')
+        print(listing_type, location, commute)
+    except KeyError:
+        return jsonify({"error": "Missing required parameters"}), 400
+    try:
         with open('Sample.json', 'r') as f:
             data = f.read()
             return Response(data, mimetype='application/json') # Return a Response object
