@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 import json
 
@@ -11,33 +11,22 @@ def main():
 
 @app.route("/getListings", methods=['GET'])
 def getListings():
-    listing_type = request.args.get('type')
-    location = request.args.get('location')
-    commute = request.args.get('commute')
-
+    try:
+        listing_type = request.args.get('type')
+        location = request.args.get('location')
+        commute = request.args.get('commute')
+        print(listing_type, location, commute)
+    except KeyError:
+        return jsonify({"error": "Missing required parameters"}), 400
     try:
         with open('Sample.json', 'r') as f:
-            sample_data = json.load(f)
-
-            filtered_listings = []
-            if sample_data.get("listings"):
-                for listing in sample_data["listings"]:
-                    type_match = (listing_type is None or listing_type == "" or listing['type'] == listing_type)
-                    location_match = (location is None or location == "" or listing['location'] == location)
-                    commute_match = (commute is None or commute == "" or listing['location'] == commute)
-
-                    if type_match and location_match and commute_match:
-                        filtered_listings.append(listing)
-
-                return jsonify({"data": filtered_listings})
-            else:
-                return jsonify({"data": sample_data})
+            data = f.read()
+            return Response(data, mimetype='application/json') # Return a Response object
 
     except FileNotFoundError:
         return jsonify({"error": "Sample.json not found"}), 404
     except json.JSONDecodeError:
         return jsonify({"error": "Invalid JSON in Sample.json"}), 500
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
