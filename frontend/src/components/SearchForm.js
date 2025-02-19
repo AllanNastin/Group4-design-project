@@ -12,9 +12,7 @@ const SearchForm = () => {
 
         const formData = new FormData(e.target);
         const payload = Object.fromEntries(formData);
-
-        console.log(payload);
-        navigate("/listings");
+        navigate("/listings", { state: payload });
     }
 
     return (
