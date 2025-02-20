@@ -39,10 +39,15 @@ def getListings():
                     JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
                     WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY;
                 """)
-
                 results = cursor.fetchall()
                 response["total_results"] = len(results)
+                
                 for listing in results:
+                    cursor.execute("""
+                        SELECT Link FROM PropertyPictures WHERE PropertyId = %s;
+                    """, (listing[0],))
+                    images = cursor.fetchall()
+                    
                     jsonEntry = {
                         "listing_id": listing[0],
                         "address": listing[1],
@@ -50,7 +55,8 @@ def getListings():
                         "bedrooms": listing[3],
                         "bathrooms": listing[4],
                         "size": listing[5],
-                        "current_price": listing[7]
+                        "current_price": listing[7],
+                        "images": [sub[0] for sub in images]
                     }
                     response["listings"].append(jsonEntry)
                 cursor.close()

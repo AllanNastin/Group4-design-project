@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import mysql.connector
+from dotenv import load_dotenv
 
 create_property_table_query = """
     CREATE TABLE PropertyDetails (
@@ -67,6 +68,11 @@ def get_property_listings(url):
         meta_div = listing.find('div', {'data-tracking':"srp_meta"})
         meta_text = meta_div.get_text() if meta_div else 'N/A'
 
+        img_divs = listing.find_all('img', {'alt': address})
+        imgs = []
+        for img_div in img_divs:
+            imgs.append(img_div['src'])
+
         # Extract bed, bath, and size from meta_text
         bed_match = re.search(r'(\d+)\s*Bed', meta_text)
         bath_match = re.search(r'(\d+)\s*Bath', meta_text)
@@ -87,9 +93,9 @@ def get_property_listings(url):
             'bed': bed,
             'bath': bath,
             'size': size,
-            'link': link
+            'link': link,
+            'images': imgs
         })
-
     return toReturn
 
 def daftScrapper():
@@ -122,12 +128,16 @@ def daftScrapper():
                         SELECT Id FROM PropertyDetails WHERE Eircode = %s OR Link = %s LIMIT 1;
                     """, (listing['eircode'], listing['link']))
                     newId = cursor.fetchone()
-                    print(newId)
+
                     if newId:
                         newId = newId[0]
+                        for imgLink in listing.get('images'):
+                            cursor.execute("""
+                                INSERT INTO PropertyPictures (PropertyId, Link) VALUES (%s, %s);
+                            """, (newId, imgLink))
                         cursor.execute("""
                                 INSERT INTO PropertyPriceHistory (PropertyId, Price, Timestamp) VALUES (%s, %s, %s);
-                        """,( newId, listing['price'], datetime.datetime.now()))
+                        """,( newId, convert_price(listing['price']), datetime.datetime.now()))
                         conn.commit()
                 print(f"Page {page // 20 + 1} done")
         
