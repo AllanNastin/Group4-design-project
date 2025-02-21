@@ -30,33 +30,32 @@ const ListingsParser = () => {
                 setLoading(false);
             });
         */
+           // Make get request to backend
+        const getListings = async () => {
+            const response = await axios.get('https://gdp4back.sprinty.tech/getListings', {
+                // add request params
+                params: {
+                    type : state.type,
+                    location : state.location,
+                    commute : state.commute
+                }
+            });
+            const status = response.status;
+            // if OK response
+            if(status === 200) {
+                setListingsData(response.data);
+            }
+            else {
+                setError(`(${status}) Error loading listings`)
+            }
+            setLoading(false);
+
+        };
         getListings();
-    }, );
+    }, [state]);
 
     const handleListingClick = (listing) => {
         navigate("/listing/" + listing.listing_id);
-    };
-
-    // Make get request to backend
-    const getListings = async () => {
-        const response = await axios.get('https://gdp4back.sprinty.tech/getListings', {
-            // add request params
-            params: {
-				type : state.type,
-                location : state.location,
-                commute : state.commute
-			}
-        });
-        const status = response.status;
-        // if OK response
-		if(status === 200) {
-            setListingsData(response.data);
-        }
-        else {
-            setError(`(${status}) Error loading listings`)
-        }
-        setLoading(false);
-
     };
 
     if (loading) return <p className="text-center mt-5">Loading property listings...</p>;
