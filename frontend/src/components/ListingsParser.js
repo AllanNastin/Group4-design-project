@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import axios from 'axios';
 
@@ -8,6 +8,7 @@ const ListingsParser = () => {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const { state } = useLocation();
 
     // Fetch listings data from JSON file
     useEffect(() => {
@@ -29,28 +30,32 @@ const ListingsParser = () => {
                 setLoading(false);
             });
         */
+           // Make get request to backend
+        const getListings = async () => {
+            const response = await axios.get('https://gdp4back.sprinty.tech/getListings', {
+                // add request params
+                params: {
+                    type : state.type,
+                    location : state.location,
+                    commute : state.commute
+                }
+            });
+            const status = response.status;
+            // if OK response
+            if(status === 200) {
+                setListingsData(response.data);
+            }
+            else {
+                setError(`(${status}) Error loading listings`)
+            }
+            setLoading(false);
+
+        };
         getListings();
-    }, []);
+    }, [state]);
 
     const handleListingClick = (listing) => {
         navigate("/listing/" + listing.listing_id);
-    };
-
-    // Make get request to backend
-    const getListings = async () => {
-        const response = await axios.get('http://127.0.0.1:5000/getListings', {
-            // add request params
-        });
-        const status = response.status;
-        // if OK response
-		if(status === 200) {
-            setListingsData(response.data);
-        }
-        else {
-            setError(`(${status}) Error loading listings`)
-        }
-        setLoading(false);
-
     };
 
     if (loading) return <p className="text-center mt-5">Loading property listings...</p>;
