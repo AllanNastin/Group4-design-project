@@ -1,9 +1,17 @@
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 import json
+import scrap_daft
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "https://gdp4.sprinty.tech"])
+
+# Pre-scrape listings on startup
+try:
+    listings_data = scrap_daft.daft_scraper_json(0, 1)  # Scrape the first page
+except Exception as e:
+    print(f"Error during scraping: {e}")
+    listings_data = json.dumps({"error": "Failed to scrape listings"})  # Error as JSON
 
 @app.route("/")
 def main():
@@ -18,15 +26,8 @@ def getListings():
         print(listing_type, location, commute)
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
-    try:
-        with open('Sample.json', 'r') as f:
-            data = f.read()
-            return Response(data, mimetype='application/json') # Return a Response object
 
-    except FileNotFoundError:
-        return jsonify({"error": "Sample.json not found"}), 404
-    except json.JSONDecodeError:
-        return jsonify({"error": "Invalid JSON in Sample.json"}), 500
+    return Response(listings_data, mimetype='application/json') # Return the pre-scraped JSON
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
