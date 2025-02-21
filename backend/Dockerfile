@@ -7,7 +7,7 @@ WORKDIR /app
 # Add the current directory contents into the container at /app
 ADD ./server.py /app
 ADD ./requirements.txt /app
-ADD ./Sample.json /app
+ADD ./Sample2.json /app
 
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt

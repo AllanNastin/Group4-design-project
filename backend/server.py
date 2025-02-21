@@ -24,9 +24,9 @@ def getListings():
             return Response(data, mimetype='application/json') # Return a Response object
 
     except FileNotFoundError:
-        return jsonify({"error": "Sample.json not found"}), 404
+        return jsonify({"error": "Sample2.json not found"}), 404
     except json.JSONDecodeError:
-        return jsonify({"error": "Invalid JSON in Sample.json"}), 500
+        return jsonify({"error": "Invalid JSON in Sample2.json"}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
