@@ -38,7 +38,7 @@ const ListingsParser = () => {
 
     // Make get request to backend
     const getListings = async () => {
-        const response = await axios.get('https://gdp4back.sprinty.tech/getListings', {
+        const response = await axios.get('http://127.0.0.1:5000/getListings', {
             // add request params
         });
         const status = response.status;

@@ -73,7 +73,7 @@ def daft_scraper_json(start_page=0, end_page=1):
         url = f'https://www.daft.ie/property-for-sale/ireland?from={page * 20}&pageSize=20'
         listings = get_property_listings(url)
         all_listings.extend(listings)
-        print(f"Page {page + 1} done")
+        # print(f"Page {page + 1} done")
 
     formatted_listings = []
     for index, listing in enumerate(all_listings):
