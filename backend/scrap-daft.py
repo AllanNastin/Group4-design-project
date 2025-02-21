@@ -4,36 +4,12 @@ import os
 import requests
 from bs4 import BeautifulSoup
 import re
-import mysql.connector
-from dotenv import load_dotenv
-
-create_property_table_query = """
-    CREATE TABLE PropertyDetails (
-        Id INT AUTO_INCREMENT PRIMARY KEY,
-        Address NVARCHAR(255),
-        Eircode NVARCHAR(10),
-        Bed INT,
-        Bath INT,
-        Size FLOAT,
-        Link NVARCHAR(255)
-    );
-    """
-create_price_table_query = """
-    CREATE TABLE PropertyPriceHistory (
-        Id INT AUTO_INCREMENT PRIMARY KEY,
-        PropertyId INT,
-        Price FLOAT,
-        Timestamp DATETIME,
-        FOREIGN KEY (PropertyId) REFERENCES PropertyDetails(Id)
-    );
-    """
 
 def convert_price(price_str):
     if price_str == 'N/A':
         return -1.0
     else:
         cleaned_price = re.sub(r'[^\d.]', '', price_str)
-
         try:
             return float(cleaned_price)
         except ValueError:
@@ -57,28 +33,21 @@ def get_property_listings(url):
         return []
 
     for listing in listings.find_all('li'):
-        # Get link from the listing
         link = listing.find('a')['href']
-        # Extract address, price, bed, bath, and size from HTML
         address_div = listing.find('div', {'data-tracking': 'srp_address'})
         address = address_div.get_text() if address_div else 'N/A'
         price_div = listing.find('div', {'data-tracking':"srp_price"})
         price = price_div.get_text() if price_div else 'N/A'
-        # Extract meta text from HTML
         meta_div = listing.find('div', {'data-tracking':"srp_meta"})
         meta_text = meta_div.get_text() if meta_div else 'N/A'
 
         img_divs = listing.find_all('img', {'alt': address})
-        imgs = []
-        for img_div in img_divs:
-            imgs.append(img_div['src'])
+        imgs = [img_div['src'] for img_div in img_divs]
 
-        # Extract bed, bath, and size from meta_text
         bed_match = re.search(r'(\d+)\s*Bed', meta_text)
         bath_match = re.search(r'(\d+)\s*Bath', meta_text)
         size_match = re.search(r'(\d+)\s*m²', meta_text)
 
-        # Extract eircode from address
         eircode_match = re.search(r'([AC-FHKNPRTV-Y]{1}[0-9]{2}|D6W)[ ]?[0-9AC-FHKNPRTV-Y]{4}', address)
         eircode = eircode_match.group(0) if eircode_match else 'N/A'
 
@@ -89,7 +58,7 @@ def get_property_listings(url):
         toReturn.append({
             'address': address,
             'eircode': eircode,
-            'price': price,
+            'price': convert_price(price),
             'bed': bed,
             'bath': bath,
             'size': size,
@@ -98,48 +67,36 @@ def get_property_listings(url):
         })
     return toReturn
 
-def daftScrapper():
-    load_dotenv()
-    try:
-        conn = mysql.connector.connect(
-            host=os.getenv('MYSQL_Host'),
-            port=os.getenv('MYSQL_Port'),
-            user=os.getenv('MYSQL_User'),
-            password=os.getenv('MYSQL_Password'),
-            database=os.getenv('MYSQL_Database')
-        )
+def daft_scraper_json(start_page=0, end_page=1):
+    all_listings = []
+    for page in range(start_page, end_page):
+        url = f'https://www.daft.ie/property-for-sale/ireland?from={page * 20}&pageSize=20'
+        listings = get_property_listings(url)
+        all_listings.extend(listings)
+        print(f"Page {page + 1} done")
 
-        with conn.cursor() as cursor:
-            for page in range(0,12650,20):#range(0,12650, 20):
-                url = 'https://www.daft.ie/property-for-sale/ireland?from='+ str(page) +'&pageSize=20'
-                listings = get_property_listings(url)
-                for listing in listings:
+    formatted_listings = []
+    for index, listing in enumerate(all_listings):
+        formatted_listings.append({
+            "listing_id": index + 1,
+            "address": listing['address'],
+            "eircode": listing['eircode'],
+            "bedrooms": listing['bed'],
+            "bathrooms": listing['bath'],
+            "size": listing['size'],
+            "price": listing['price'],
+            "current_price": listing['price'],
+            "images": listing['images']
+        })
 
-                    cursor.execute("""
-                    INSERT INTO PropertyDetails (Address, Eircode, Bed, Bath, Size, Link)
-                                    SELECT %s, %s, %s, %s, %s, %s
-                                    WHERE NOT EXISTS (SELECT 1 FROM PropertyDetails WHERE Eircode = %s OR Link = %s);
-                    """, (listing['address'], listing['eircode'], listing['bed'], listing['bath'],
-                            listing['size'], listing['link'], listing['eircode'],listing['link']))
-                    
-                    conn.commit()
+    result_json = {
+        "total_results": len(formatted_listings),
+        "listings": formatted_listings
+    }
 
-                    cursor.execute("""
-                        SELECT Id FROM PropertyDetails WHERE Eircode = %s OR Link = %s LIMIT 1;
-                    """, (listing['eircode'], listing['link']))
-                    newId = cursor.fetchone()
+    return json.dumps(result_json, indent=2)
 
-                    if newId:
-                        newId = newId[0]
-                        for imgLink in listing.get('images'):
-                            cursor.execute("""
-                                INSERT INTO PropertyPictures (PropertyId, Link) VALUES (%s, %s);
-                            """, (newId, imgLink))
-                        cursor.execute("""
-                                INSERT INTO PropertyPriceHistory (PropertyId, Price, Timestamp) VALUES (%s, %s, %s);
-                        """,( newId, convert_price(listing['price']), datetime.datetime.now()))
-                        conn.commit()
-                print(f"Page {page // 20 + 1} done")
-        
-    except mysql.connector.Error as e:
-        print(f"Error from mysql connector: {e}")
+if __name__ == "__main__":
+    # Example usage: Scrape pages 0 to 5 (inclusive)
+    result = daft_scraper_json(0, 1)
+    print(result)
