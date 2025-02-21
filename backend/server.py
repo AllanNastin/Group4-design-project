@@ -19,7 +19,7 @@ def getListings():
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
     try:
-        with open('Sample.json', 'r') as f:
+        with open('Sample2.json', 'r') as f:
             data = f.read()
             return Response(data, mimetype='application/json') # Return a Response object
 
