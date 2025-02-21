@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
+import axios from 'axios';
 
 const ListingsParser = () => {
     const [listingsData, setListingsData] = useState(null);
@@ -10,6 +11,7 @@ const ListingsParser = () => {
 
     // Fetch listings data from JSON file
     useEffect(() => {
+        /*
         fetch("/Sample.json")
             .then((response) => {
                 if (!response.ok) {
@@ -26,10 +28,29 @@ const ListingsParser = () => {
             .finally(() => {
                 setLoading(false);
             });
+        */
+        getListings();
     }, []);
 
     const handleListingClick = (listing) => {
         navigate("/listing/" + listing.listing_id);
+    };
+
+    // Make get request to backend
+    const getListings = async () => {
+        const response = await axios.get('https://gdp4back.sprinty.tech/getListings', {
+            // add request params
+        });
+        const status = response.status;
+        // if OK response
+		if(status === 200) {
+            setListingsData(response.data);
+        }
+        else {
+            setError(`(${status}) Error loading listings`)
+        }
+        setLoading(false);
+
     };
 
     if (loading) return <p className="text-center mt-5">Loading property listings...</p>;
