@@ -1,12 +1,41 @@
-name: Build Frontend
+name: Test and Build Frontend
 
 on:
   push:
     branches:
-      - main  # when main has merge/push will auto deploy
+      - "**"
+  # pull_request:
+  #   branches:
+  #     - main
 
 jobs:
+
+  test:
+    name: 🧪 Run Jest Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧐 Checkout Code
+        uses: actions/checkout@v3
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: 📦 Install Dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: 🏃 Run Jest Tests (App & setupTests)
+        run: |
+          cd frontend
+          npm test -- --ci --coverage src/App.test.js src/setupTests.test.js  # test
+
   build-and-deploy:
+    needs: test
+    if: success() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +51,7 @@ jobs:
 
       - name: 🏗️ create frontend Docker image
         run: |
-          docker build -t ghcr.io/allannastin/frontend-app:latest ./frontend
+          docker build --no-cache -t ghcr.io/allannastin/frontend-app:latest ./frontend
 
       - name: 🚀 push Docker image to Docker Hub
         run: |
