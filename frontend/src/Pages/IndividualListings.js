@@ -17,8 +17,10 @@ const IndividualListings = () => {
       setLoading(false);
       return;
     }
-    setListing(state);
-    setLoading(false);
+    else {
+      setListing(state);
+      setLoading(false);
+    }
   }, [state]);
 
   if (loading) return <p className="text-center mt-5">Loading listing details...</p>;
