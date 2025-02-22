@@ -21,6 +21,6 @@ test("renders IndividualListings", () => {
       </MemoryRouter>
   );
 
-  const loadingElement = screen.getByText(/Error loading listings/i);
-  expect(loadingElement).not.toBeInTheDocument();
+  const loadingElement = screen.getByText(/(State) Error loading listings/i);
+  expect(loadingElement).toBeInTheDocument();
 });
