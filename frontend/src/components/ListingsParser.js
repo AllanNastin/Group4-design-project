@@ -32,6 +32,11 @@ const ListingsParser = () => {
         */
            // Make get request to backend
         const getListings = async () => {
+            if(state === null) {
+                setError(`(State) Error loading listings`);
+                setLoading(false);
+                return;
+            }
             const response = await axios.get('https://gdp4back.sprinty.tech/getListings', {
                 // add request params
                 params: {
@@ -55,7 +60,7 @@ const ListingsParser = () => {
     }, [state]);
 
     const handleListingClick = (listing) => {
-        navigate("/listing/" + listing.listing_id);
+        navigate("/listing/" + listing.listing_id,  { state: listing });
     };
 
     if (loading) return <p className="text-center mt-5">Loading property listings...</p>;
