@@ -4,7 +4,7 @@ import json
 import scrap_daft
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:3000", "https://gdp4.sprinty.tech, https://dev-gdp4.sprinty.tech"])
+CORS(app, origins=["http://localhost:3000", "https://gdp4.sprinty.tech", "https://dev-gdp4.sprinty.tech"])
 
 # Pre-scrape listings on startup
 try:
