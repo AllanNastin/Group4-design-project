@@ -36,24 +36,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🛠️ check code
+      - name: 🛠️ Checkout Code
         uses: actions/checkout@v3
 
-      - name: 🔑 log into Docker Hub
+      - name: 🔑 Log into Docker Hub
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner  }}
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.TOKEN }}
 
       - name: Set environment variable for API URL
         run: echo "REACT_APP_API_URL=https://gdp4back.sprinty.tech" >> $GITHUB_ENV
 
-      - name: 🏗️ create frontend Docker image
+      - name: 🏗️ Create frontend Docker image
         run: |
-          docker build --no-cache -t ghcr.io/allannastin/frontend-app:latest ./frontend
+          docker build --no-cache --build-arg REACT_APP_API_URL=$REACT_APP_API_URL -t ghcr.io/allannastin/frontend-app:latest ./frontend
 
-      - name: 🚀 push Docker image to Docker Hub
+      - name: 🚀 Push Docker image to Docker Hub
         run: |
           docker push ghcr.io/allannastin/frontend-app:latest
 
@@ -63,23 +63,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🛠️ check code
+      - name: 🛠️ Checkout Code
         uses: actions/checkout@v3
 
-      - name: 🔑 log into Docker Hub
+      - name: 🔑 Log into Docker Hub
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner  }}
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.TOKEN }}
 
       - name: Set environment variable for API URL
         run: echo "REACT_APP_API_URL=https://dev-gdp4back.sprinty.tech" >> $GITHUB_ENV
 
-      - name: 🏗️ create frontend Docker image for dev
+      - name: 🏗️ Create frontend Docker image for dev
         run: |
-          docker build --no-cache -t ghcr.io/allannastin/frontend-app:dev ./frontend
+          docker build --no-cache --build-arg REACT_APP_API_URL=$REACT_APP_API_URL -t ghcr.io/allannastin/frontend-app:dev ./frontend
 
-      - name: 🚀 push Docker image to Docker Hub for dev
+      - name: 🚀 Push Docker image to Docker Hub for dev
         run: |
           docker push ghcr.io/allannastin/frontend-app:dev
