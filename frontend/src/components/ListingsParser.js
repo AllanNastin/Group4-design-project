@@ -32,26 +32,30 @@ const ListingsParser = () => {
         */
            // Make get request to backend
         const getListings = async () => {
-            if(state === null) {
-                setError(`(State) Error loading listings`);
-                setLoading(false);
-                return;
-            }
-            const response = await axios.get('https://gdp4back.sprinty.tech/getListings', {
-                // add request params
-                params: {
-                    type : state.type,
-                    location : state.location,
-                    commute : state.commute
+            try {
+                if(state === null) {
+                    setError(`(State) Error loading listings`);
+                    setLoading(false);
+                    return;
                 }
-            });
-            const status = response.status;
-            // if OK response
-            if(status === 200) {
-                setListingsData(response.data);
-            }
-            else {
-                setError(`(${status}) Error loading listings`)
+                const response = await axios.get('https://gdp4back.sprinty.tech/getListings', {
+                    // add request params
+                    params: {
+                        type : state.type,
+                        location : state.location,
+                        commute : state.commute
+                    }
+                });
+                const status = response.status;
+                // if OK response
+                if(status === 200) {
+                    setListingsData(response.data);
+                }
+                else {
+                    setError(`(${status}) Error loading listings`)
+                }
+            } catch (error) {
+                setError(`Error contacting server`);
             }
             setLoading(false);
 

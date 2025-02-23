@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, ListGroup } from "react-bootstrap";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const IndividualListings = () => {
-  const { id } = useParams(); // Get the listing ID from the URL
+
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [error, setError] = useState(null);
