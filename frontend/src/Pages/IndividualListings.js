@@ -1,30 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, ListGroup } from "react-bootstrap";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const IndividualListings = () => {
-  const { id } = useParams(); // Get the listing ID from the URL
+
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const { state } = useLocation();
+
   useEffect(() => {
-    fetch("/Sample.json")
-      .then((response) => {
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        return response.json();
-      })
-      .then((jsonData) => {
-        const selectedListing = jsonData.listings.find(
-          (listing) => listing.listing_id.toString() === id
-        );
-        if (!selectedListing) throw new Error("Listing not found");
-        setListing(selectedListing);
-      })
-      .catch((err) => setError(`Error loading listing: ${err.message}`))
-      .finally(() => setLoading(false));
-  }, [id]);
+    if(state === null) {
+      setError(`(State) Error loading listings`);
+      setLoading(false);
+      return;
+    }
+    else {
+      setListing(state);
+      setLoading(false);
+    }
+  }, [state]);
 
   if (loading) return <p className="text-center mt-5">Loading listing details...</p>;
   if (error) return <p className="text-danger text-center mt-5">{error}</p>;
