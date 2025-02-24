@@ -64,7 +64,7 @@ const ListingsParser = () => {
 
         };
         getListings();
-    }, [state]);
+    }, [state, apiUrl]);
 
     const handleListingClick = (listing) => {
         navigate("/listing/" + listing.listing_id,  { state: listing });
