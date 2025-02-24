@@ -1,0 +1,85 @@
+name: Test and Build Frontend
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+
+  test:
+    name: 🧪 Run Jest Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧐 Checkout Code
+        uses: actions/checkout@v3
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: 📦 Install Dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: 🏃 Run Jest Tests (App & setupTests)
+        run: |
+          cd frontend
+          npm test -- --ci --coverage src/App.test.js src/setupTests.test.js  # test
+
+  build-and-deploy:
+    needs: test
+    if: success() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🛠️ Checkout Code
+        uses: actions/checkout@v3
+
+      - name: 🔑 Log into Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.TOKEN }}
+
+      - name: Set environment variable for API URL
+        run: echo "REACT_APP_API_URL=https://gdp4back.sprinty.tech" >> $GITHUB_ENV
+
+      - name: 🏗️ Create frontend Docker image
+        run: |
+          docker build --no-cache --build-arg REACT_APP_API_URL=$REACT_APP_API_URL -t ghcr.io/allannastin/frontend-app:latest ./frontend
+
+      - name: 🚀 Push Docker image to Docker Hub
+        run: |
+          docker push ghcr.io/allannastin/frontend-app:latest
+
+  build-and-deploy-dev:
+    needs: test
+    if: success() && github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🛠️ Checkout Code
+        uses: actions/checkout@v3
+
+      - name: 🔑 Log into Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.TOKEN }}
+
+      - name: Set environment variable for API URL
+        run: echo "REACT_APP_API_URL=https://dev-gdp4back.sprinty.tech" >> $GITHUB_ENV
+
+      - name: 🏗️ Create frontend Docker image for dev
+        run: |
+          docker build --no-cache --build-arg REACT_APP_API_URL=$REACT_APP_API_URL -t ghcr.io/allannastin/frontend-app:dev ./frontend
+
+      - name: 🚀 Push Docker image to Docker Hub for dev
+        run: |
+          docker push ghcr.io/allannastin/frontend-app:dev
