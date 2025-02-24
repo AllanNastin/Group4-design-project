@@ -10,7 +10,10 @@ const ListingsParser = () => {
     const navigate = useNavigate();
     const { state } = useLocation();
 
-    // Fetch listings data from JSON file
+    const apiUrl = process.env.REACT_APP_API_URL;
+
+
+    // Fetch listings data from JSON file   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
     useEffect(() => {
         /*
         fetch("/Sample.json")
@@ -38,7 +41,7 @@ const ListingsParser = () => {
                     setLoading(false);
                     return;
                 }
-                const response = await axios.get('https://gdp4back.sprinty.tech/getListings', {
+                const response = await axios.get(`${apiUrl}/getListings`, {
                     // add request params
                     params: {
                         type : state.type,
