@@ -1,12 +1,16 @@
-# Use the official MySQL image
-FROM mysql:latest
+# Use an official Python runtime as a parent image
+FROM python:3.8-slim-buster
 
-# Set MySQL root password from environment variable
-ARG MYSQL_ROOT_PASSWORD
-ENV MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+# Set the working directory in the container to /app
+WORKDIR /app
 
-# Expose MySQL port
-EXPOSE 3306
+# Add the current directory contents into the container at /app
+ADD ./server.py /app
+ADD ./requirements.txt /app
+ADD ./Sample.json /app
 
-# Default command
-CMD ["mysqld"]
+# Install any needed packages specified in requirements.txt
+RUN pip install -r requirements.txt
+
+# Run app.py when the container launches
+CMD ["python", "server.py"]
