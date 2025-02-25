@@ -14,14 +14,13 @@ const IndividualListings = () => {
   useEffect(() => {
     if(state === null) {
       setError(`(State) Error loading listings`);
-      setLoading(false);
-      return;
+      navigate("/search");
     }
     else {
       setListing(state);
       setLoading(false);
     }
-  }, [state]);
+  }, [state, navigate]);
 
   if (loading) return <p className="text-center mt-5">Loading listing details...</p>;
   if (error) return <p className="text-danger text-center mt-5">{error}</p>;

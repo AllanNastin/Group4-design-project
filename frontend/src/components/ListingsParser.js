@@ -38,8 +38,7 @@ const ListingsParser = () => {
             try {
                 if(state === null) {
                     setError(`(State) Error loading listings`);
-                    setLoading(false);
-                    return;
+                    navigate("/search");
                 }
                 const response = await axios.get(`${apiUrl}/getListings`, {
                     // add request params
@@ -64,7 +63,7 @@ const ListingsParser = () => {
 
         };
         getListings();
-    }, [state, apiUrl]);
+    }, [state, apiUrl, navigate]);
 
     const handleListingClick = (listing) => {
         navigate("/listing/" + listing.listing_id,  { state: listing });
