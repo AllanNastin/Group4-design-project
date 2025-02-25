@@ -33,7 +33,7 @@ const SearchForm = () => {
         } else {
             const formData = new FormData(e.target);
             const payload = Object.fromEntries(formData);
-            navigate("/listings", { state: { searchParams: payload } });
+            navigate("/listings", { state: { payload } });
         }
 
         setValidated(true);

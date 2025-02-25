@@ -40,12 +40,13 @@ const ListingsParser = () => {
                     setError(`(State) Error loading listings`);
                     navigate("/search");
                 }
+                const payload = state.payload;
                 const response = await axios.get(`${apiUrl}/getListings`, {
                     // add request params
                     params: {
-                        type : state.type,
-                        location : state.location,
-                        commute : state.commute
+                        type : payload.type,
+                        location : payload.location,
+                        commute : payload.commute
                     }
                 });
                 const status = response.status;
