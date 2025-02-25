@@ -6,7 +6,8 @@ CREATE TABLE PropertyDetails (
     Bed INT,
     Bath INT,
     Size FLOAT,
-    Link NVARCHAR(255)
+    Link NVARCHAR(255),
+    ForSale BOOL -- true if for sale, false if for rent
 );
 
 CREATE TABLE PropertyPriceHistory (
