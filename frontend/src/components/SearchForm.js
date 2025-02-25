@@ -33,9 +33,6 @@ const SearchForm = () => {
         } else {
             const formData = new FormData(e.target);
             const payload = Object.fromEntries(formData);
-            payload.propertyEircode = selectedPropertyEircode;
-            payload.commuteEircode = selectedCommuteEircode;
-            console.log(payload);
             navigate("/listings", { state: { searchParams: payload } });
         }
 
@@ -54,14 +51,14 @@ const SearchForm = () => {
                         <Form.Group className="mb-3">
                             <Form.Label>I'm looking for properties in</Form.Label>
                             <Form.Select
-                                name="propertyEircode"
+                                name="location"
                                 value={selectedPropertyEircode}
                                 onChange={(e) => setSelectedPropertyEircode(e.target.value)}
                                 required
                             >
                                 <option value="">-- Select an Eircode --</option>
                                 {eircodeList.map((entry) => (
-                                    <option key={entry.code} value={entry.code}>
+                                    <option key={entry.location} value={entry.code}>
                                         {entry.location} ({entry.code})
                                     </option>
                                 ))}
@@ -73,14 +70,14 @@ const SearchForm = () => {
                         <Form.Group className="mb-3">
                             <Form.Label>with commuter times to</Form.Label>
                             <Form.Select
-                                name="commuteEircode"
+                                name="commute"
                                 value={selectedCommuteEircode}
                                 onChange={(e) => setSelectedCommuteEircode(e.target.value)}
                                 required
                             >
                                 <option value="">-- Select an Eircode --</option>
                                 {eircodeList.map((entry) => (
-                                    <option key={entry.code} value={entry.code}>
+                                    <option key={entry.location} value={entry.code}>
                                         {entry.location} ({entry.code})
                                     </option>
                                 ))}
