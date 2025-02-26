@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
+import threading
 
 import datetime
 
@@ -15,16 +16,16 @@ CORS(app, origins=["http://localhost:3000", "https://gdp4.sprinty.tech", "https:
 
 # Schedule Scrapper
 def scheduled_scrap():
-    print("cron triggered")
+    print("cron triggered", flush=True)
     scrap_daft.scrap()
+    print(f"cron triggered done: {datetime.datetime.now()}", flush=True)
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(scheduled_scrap, trigger='cron', hour='1', minute='42')
-scheduler.start()
-print(f"scheduler started: {scheduler.get_jobs()}")
-print(f"current server time: {datetime.datetime.now()}")
+scheduler.add_job(scheduled_scrap, 'cron', hour=16, minute=11)
+
+
 # shutdown when the app stops
-atexit.register(lambda: scheduler.shutdown())
+#atexit.register(lambda: scheduler.shutdown())
 
 @app.route("/")
 def main():
@@ -111,8 +112,11 @@ def getListings():
         except json.JSONDecodeError:
             return jsonify({"error": "Invalid JSON in Sample.json"}), 500
 
-
-
 if __name__ == "__main__":
+    scheduler.start()
+    print(f"scheduler started: {scheduler.get_jobs()}")
+    
+    for job in scheduler.get_jobs():
+        print(f"Job ID: {job.id}, Next Run: {job.next_run_time}")
     app.run(host="0.0.0.0", port=5300)
 

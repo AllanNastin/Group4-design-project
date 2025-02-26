@@ -88,7 +88,7 @@ def daft_rent_scrap():
         )
 
         with conn.cursor() as cursor:
-            for page in range(0,1900,20): #FIXME: hardcoded range
+            for page in range(0,1880,20): #FIXME: hardcoded range
                 url = 'https://www.daft.ie/property-for-rent/ireland?from='+ str(page) +'&pageSize=20'
                 listings = get_property_listings(url)
                 for listing in listings:
@@ -103,7 +103,7 @@ def daft_rent_scrap():
                     conn.commit()
 
                     cursor.execute("""
-                        SELECT Id FROM PropertyDetails WHERE Eircode = %s OR Link = %s LIMIT 1;
+                        SELECT Id FROM PropertyDetails WHERE (Eircode = %s AND Eircode != 'N/A') OR Link = %s LIMIT 1;
                     """, (listing['eircode'], listing['link']))
                     newId = cursor.fetchone()
 
@@ -111,8 +111,13 @@ def daft_rent_scrap():
                         newId = newId[0]
                         for imgLink in listing.get('images'):
                             cursor.execute("""
-                                INSERT INTO PropertyPictures (PropertyId, Link) VALUES (%s, %s);
+                                SELECT 1 FROM PropertyPictures WHERE PropertyId = %s AND Link = %s;
                             """, (newId, imgLink))
+                            picture_exists = cursor.fetchone()
+                            if not picture_exists:
+                                cursor.execute("""
+                                    INSERT INTO PropertyPictures (PropertyId, Link) VALUES (%s, %s);
+                                """, (newId, imgLink))
                         cursor.execute("""
                                 INSERT INTO PropertyPriceHistory (PropertyId, Price, Timestamp) VALUES (%s, %s, %s);
                         """,( newId, convert_price(listing['price']), datetime.datetime.now()))
@@ -149,7 +154,7 @@ def daft_sale_scrap():
                     conn.commit()
 
                     cursor.execute("""
-                        SELECT Id FROM PropertyDetails WHERE Eircode = %s OR Link = %s LIMIT 1;
+                        SELECT Id FROM PropertyDetails WHERE (Eircode = %s AND Eircode != 'N/A') OR Link = %s LIMIT 1;
                     """, (listing['eircode'], listing['link']))
                     newId = cursor.fetchone()
 
@@ -157,8 +162,13 @@ def daft_sale_scrap():
                         newId = newId[0]
                         for imgLink in listing.get('images'):
                             cursor.execute("""
-                                INSERT INTO PropertyPictures (PropertyId, Link) VALUES (%s, %s);
+                                SELECT 1 FROM PropertyPictures WHERE PropertyId = %s AND Link = %s;
                             """, (newId, imgLink))
+                            picture_exists = cursor.fetchone()
+                            if not picture_exists:
+                                cursor.execute("""
+                                    INSERT INTO PropertyPictures (PropertyId, Link) VALUES (%s, %s);
+                                """, (newId, imgLink))
                         cursor.execute("""
                                 INSERT INTO PropertyPriceHistory (PropertyId, Price, Timestamp) VALUES (%s, %s, %s);
                         """,( newId, convert_price(listing['price']), datetime.datetime.now()))
