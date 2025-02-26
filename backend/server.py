@@ -49,9 +49,10 @@ def getListings():
         print(listing_type, location, commute, flush =True)
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
-    ForSaleValue = "FALSE"
+    ForSaleValue = 0
+
     if listing_type == "sale":
-        ForSaleValue = "TRUE"
+        ForSaleValue = 1
         # return all
     try:
         response = {
@@ -71,7 +72,7 @@ def getListings():
                     SELECT pd.*, pph.Price
                     FROM PropertyDetails pd
                     JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
-                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND ForSale = %s AND Eircode LIKE %s;
+                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND pd.ForSale = %s AND pd.Eircode LIKE %s;
                 """, (ForSaleValue,f"{location}%"))
             else:
                 cursor.execute("""
