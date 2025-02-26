@@ -67,10 +67,10 @@ def get_property_listings(url):
         })
     return toReturn
 
-def daft_scraper_json(start_page=0, end_page=1, eircode=None):
+def daft_scraper_json(start_page=0, end_page=1, eircode=None, listing_type='for-sale'):
     all_listings = []
     for page in range(start_page, end_page):
-        url = f'https://www.daft.ie/property-for-sale/ireland?from={page * 20}&pageSize=20'
+        url = f'https://www.daft.ie/property-for-{listing_type}/ireland?from={page * 20}&pageSize=20'
         listings = get_property_listings(url)
         all_listings.extend(listings)
         # print(f"Page {page + 1} done")
@@ -101,6 +101,6 @@ def daft_scraper_json(start_page=0, end_page=1, eircode=None):
     return json.dumps(result_json, indent=2)
 
 if __name__ == "__main__":
-    # Example usage: Scrape pages 0 to 5 (inclusive) with an optional eircode
-    result = daft_scraper_json(0, 5, eircode=None)
+    # Example usage: Scrape pages 0 to 5 (inclusive) with an optional eircode and listing type
+    result = daft_scraper_json(0, 5, eircode=None, listing_type='rent')
     print(result)
