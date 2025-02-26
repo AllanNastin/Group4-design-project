@@ -33,7 +33,7 @@ const SearchForm = () => {
         } else {
             const formData = new FormData(e.target);
             const payload = Object.fromEntries(formData);
-            navigate("/listings", { state: { searchParams: payload } });
+            navigate("/listings", { state: { payload } });
         }
 
         setValidated(true);
@@ -45,7 +45,7 @@ const SearchForm = () => {
                 <Card.Body>
                     <Form noValidate validated={validated} onSubmit={submitForm}>
                         <Form.Check inline type="radio" label="Rent" name="type" value="rent" defaultChecked />
-                        <Form.Check inline type="radio" label="Buy" name="type" value="buy" />
+                        <Form.Check inline type="radio" label="Buy" name="type" value="sale" />
 
                         {/* ✅ Property Eircode Dropdown */}
                         <Form.Group className="mb-3">
