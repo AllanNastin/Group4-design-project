@@ -20,7 +20,7 @@ def scheduled_scrap():
     print(f"cron triggered done: {datetime.datetime.now()}", flush=True)
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(scheduled_scrap, 'cron', hour=16, minute=11)
+scheduler.add_job(scheduled_scrap, 'cron', hour=00, minute=00)
 
 
 # shutdown when the app stops
