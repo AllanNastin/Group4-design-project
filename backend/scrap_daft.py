@@ -36,9 +36,9 @@ def get_property_listings(url):
         link = listing.find('a')['href']
         address_div = listing.find('div', {'data-tracking': 'srp_address'})
         address = address_div.get_text() if address_div else 'N/A'
-        price_div = listing.find('div', {'data-tracking':"srp_price"})
+        price_div = listing.find('div', {'data-tracking':"srp_price"}) or listing.find('p', {'class': 'sc-99fd5e84-0 klPmTo'})
         price = price_div.get_text() if price_div else 'N/A'
-        meta_div = listing.find('div', {'data-tracking':"srp_meta"})
+        meta_div = listing.find('div', {'data-tracking':"srp_meta"}) or listing.find('div', {'class': 'sc-5d364562-1 kzXTWf'})
         meta_text = meta_div.get_text() if meta_div else 'N/A'
 
         img_divs = listing.find_all('img', {'alt': address})
