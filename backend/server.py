@@ -20,7 +20,7 @@ def scheduled_scrap():
     print(f"cron triggered done: {datetime.datetime.now()}", flush=True)
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(scheduled_scrap, 'cron', hour=00, minute=00)
+scheduler.add_job(scheduled_scrap, 'cron', hour=17, minute=30)
 
 
 # shutdown when the app stops
@@ -33,83 +33,64 @@ def main():
 @app.route("/getListings", methods=['GET'])
 def getListings():
     load_dotenv()
-    if len(request.args) == 0:
-        
-        # return all
-        try:
-            response = {
-                "total_results": 0,
-                "listings": []
-            }
-            conn = mysql.connector.connect(
-                host=os.getenv('DATABASE_HOST'),
-                port=os.getenv('DATABASE_PORT'),
-                user=os.getenv('DATABASE_USER'),
-                password=os.getenv('DATABASE_PASSWORD'),
-                database=os.getenv('DATABASE_NAME')
-            )
-            with conn.cursor() as cursor:
-                cursor.execute("""
-                    SELECT pd.*, pph.Price
-                    FROM PropertyDetails pd
-                    JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
-                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY;
-                """)
-                results = cursor.fetchall()
-                response["total_results"] = len(results)
-                
-                for listing in results:
-                    cursor.execute("""
-                        SELECT Link FROM PropertyPictures WHERE PropertyId = %s;
-                    """, (listing[0],))
-                    images = cursor.fetchall()
-                    
-                    jsonEntry = {
-                        "listing_id": listing[0],
-                        "address": listing[1],
-                        "eircode": listing[2],
-                        "bedrooms": listing[3],
-                        "bathrooms": listing[4],
-                        "size": listing[5],
-                        "current_price": listing[7],
-                        "images": [sub[0] for sub in images]
-                    }
-                    response["listings"].append(jsonEntry)
-                cursor.close()
-                conn.close()
-            return jsonify(response)
-
-        except mysql.connector.Error as e:
-            print(f"Error from mysql connector: {e}")
-            return jsonify({"error": f"{e}"}), 500
-
-    else:
+    try:
         listing_type = request.args.get('type')
         location = request.args.get('location')
         commute = request.args.get('commute')
+        print(listing_type, location, commute)
+    except KeyError:
+        return jsonify({"error": "Missing required parameters"}), 400
+    ForSaleValue = "FALSE"
+    if listing_type == "sale":
+        ForSaleValue = "TRUE"
+        # return all
+    try:
+        response = {
+            "total_results": 0,
+            "listings": []
+        }
+        conn = mysql.connector.connect(
+            host=os.getenv('DATABASE_HOST'),
+            port=os.getenv('DATABASE_PORT'),
+            user=os.getenv('DATABASE_USER'),
+            password=os.getenv('DATABASE_PASSWORD'),
+            database=os.getenv('DATABASE_NAME')
+        )
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT pd.*, pph.Price
+                FROM PropertyDetails pd
+                JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
+                WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND ForSale = %s;
+            """, (ForSaleValue,))
+            results = cursor.fetchall()
+            response["total_results"] = len(results)
+                
+            for listing in results:
+                cursor.execute("""
+                    SELECT Link FROM PropertyPictures WHERE PropertyId = %s;
+                """, (listing[0],))
+                images = cursor.fetchall()
+                    
+                jsonEntry = {
+                    "listing_id": listing[0],
+                    "address": listing[1],
+                    "eircode": listing[2],
+                    "bedrooms": listing[3],
+                    "bathrooms": listing[4],
+                    "size": listing[5],
+                    "current_price": listing[7],
+                    "images": [sub[0] for sub in images]
+                }
+                response["listings"].append(jsonEntry)
+            
+        conn.close()
+        return jsonify(response)
 
-        try:
-            with open('Sample.json', 'r') as f:
-                sample_data = json.load(f)
+    except mysql.connector.Error as e:
+        print(f"Error from mysql connector: {e}")
+        return jsonify({"error": f"{e}"}), 500
 
-                filtered_listings = []
-                if sample_data.get("listings"):
-                    for listing in sample_data["listings"]:
-                        type_match = (listing_type is None or listing_type == "" or listing['type'] == listing_type)
-                        location_match = (location is None or location == "" or listing['location'] == location)
-                        commute_match = (commute is None or commute == "" or listing['location'] == commute)
-
-                        if type_match and location_match and commute_match:
-                            filtered_listings.append(listing)
-
-                    return jsonify({"data": filtered_listings})
-                else:
-                    return jsonify({"data": sample_data})
-
-        except FileNotFoundError:
-            return jsonify({"error": "Sample.json not found"}), 404
-        except json.JSONDecodeError:
-            return jsonify({"error": "Invalid JSON in Sample.json"}), 500
 
 if __name__ == "__main__":
     scheduler.start()
