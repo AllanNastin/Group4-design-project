@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
-import threading
 
 import datetime
 
