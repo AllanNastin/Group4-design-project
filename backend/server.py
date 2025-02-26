@@ -13,6 +13,7 @@ import datetime
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "https://gdp4.sprinty.tech", "https://dev-gdp4.sprinty.tech"])
 
+
 # Schedule Scrapper
 def scheduled_scrap():
     print("cron triggered", flush=True)
@@ -25,6 +26,13 @@ scheduler.add_job(scheduled_scrap, 'cron', hour=17, minute=30)
 
 # shutdown when the app stops
 #atexit.register(lambda: scheduler.shutdown())
+
+# Pre-scrape listings on startup
+# try:
+#     listings_data = scrap_daft.daft_scraper_json(0, 1)  # Scrape the first page
+# except Exception as e:
+#     print(f"Error during scraping: {e}")
+#     listings_data = json.dumps({"error": "Failed to scrape listings"})  # Error as JSON
 
 @app.route("/")
 def main():
@@ -90,7 +98,6 @@ def getListings():
     except mysql.connector.Error as e:
         print(f"Error from mysql connector: {e}")
         return jsonify({"error": f"{e}"}), 500
-
 
 if __name__ == "__main__":
     scheduler.start()

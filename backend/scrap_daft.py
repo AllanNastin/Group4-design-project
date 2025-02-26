@@ -40,10 +40,10 @@ def get_property_listings(url):
         # Extract address, price, bed, bath, and size from HTML
         address_div = listing.find('div', {'data-tracking': 'srp_address'})
         address = address_div.get_text() if address_div else 'N/A'
-        price_div = listing.find('div', {'data-tracking':"srp_price"})
+        price_div = listing.find('div', {'data-tracking':"srp_price"}) or listing.find('p', {'class': 'sc-99fd5e84-0 klPmTo'})
         price = price_div.get_text() if price_div else 'N/A'
-        # Extract meta text from HTML
-        meta_div = listing.find('div', {'data-tracking':"srp_meta"})
+
+        meta_div = listing.find('div', {'data-tracking':"srp_meta"}) or listing.find('div', {'class': 'sc-5d364562-1 kzXTWf'})
         meta_text = meta_div.get_text() if meta_div else 'N/A'
 
         img_divs = listing.find_all('img', {'alt': address})
@@ -182,13 +182,17 @@ def scrap():
     daft_rent_scrap()
     daft_sale_scrap()
 
-def daft_scraper_json(start_page=0, end_page=1):
+def daft_scraper_json(start_page=0, end_page=1, eircode=None, listing_type='for-sale'):
     all_listings = []
     for page in range(start_page, end_page):
-        url = f'https://www.daft.ie/property-for-sale/ireland?from={page * 20}&pageSize=20'
+        url = f'https://www.daft.ie/property-for-{listing_type}/ireland?from={page * 20}&pageSize=20'
         listings = get_property_listings(url)
         all_listings.extend(listings)
         # print(f"Page {page + 1} done")
+
+    if eircode:
+        eircode_prefix = eircode[:3].upper()
+        all_listings = [listing for listing in all_listings if listing['eircode'][:3].upper() == eircode_prefix]
 
     formatted_listings = []
     for index, listing in enumerate(all_listings):
@@ -212,6 +216,6 @@ def daft_scraper_json(start_page=0, end_page=1):
     return json.dumps(result_json, indent=2)
 
 if __name__ == "__main__":
-    # Example usage: Scrape pages 0 to 5 (inclusive)
-    result = daft_scraper_json(0, 1)
+    # Example usage: Scrape pages 0 to 5 (inclusive) with an optional eircode and listing type
+    result = daft_scraper_json(0, 5, eircode=None, listing_type='rent')
     print(result)
