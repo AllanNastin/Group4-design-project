@@ -46,7 +46,7 @@ def getListings():
         listing_type = request.args.get('type')
         location = request.args.get('location')
         commute = request.args.get('commute')
-        print(listing_type, location, commute)
+        print(listing_type, location, commute, flush =True)
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
     ForSaleValue = "FALSE"
@@ -66,12 +66,20 @@ def getListings():
             database=os.getenv('DATABASE_NAME')
         )
         with conn.cursor() as cursor:
-            cursor.execute("""
-                SELECT pd.*, pph.Price
-                FROM PropertyDetails pd
-                JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
-                WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND ForSale = %s;
-            """, (ForSaleValue,))
+            if len(location) == 3:
+                cursor.execute("""
+                    SELECT pd.*, pph.Price
+                    FROM PropertyDetails pd
+                    JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
+                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND ForSale = %s AND Eircode LIKE %s;
+                """, (ForSaleValue,f"{location}%"))
+            else:
+                cursor.execute("""
+                    SELECT pd.*, pph.Price
+                    FROM PropertyDetails pd
+                    JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
+                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND ForSale = %s;
+                """, (ForSaleValue,))
             results = cursor.fetchall()
             response["total_results"] = len(results)
                 
