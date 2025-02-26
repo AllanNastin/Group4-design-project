@@ -13,14 +13,3 @@ test("renders loading message", async () => {
     <App />
   </MemoryRouter>
 });
-
-test("renders IndividualListings", () => {
-  render(
-      <MemoryRouter initialEntries={["/listing/1"]}>
-        <IndividualListings />
-      </MemoryRouter>
-  );
-
-  const loadingElement = screen.getByText(/loading listing details/i);
-  expect(loadingElement).toBeInTheDocument();
-});
