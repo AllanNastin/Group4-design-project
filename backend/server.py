@@ -7,11 +7,11 @@ app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "https://gdp4.sprinty.tech", "https://dev-gdp4.sprinty.tech"])
 
 # Pre-scrape listings on startup
-try:
-    listings_data = scrap_daft.daft_scraper_json(0, 1)  # Scrape the first page
-except Exception as e:
-    print(f"Error during scraping: {e}")
-    listings_data = json.dumps({"error": "Failed to scrape listings"})  # Error as JSON
+# try:
+#     listings_data = scrap_daft.daft_scraper_json(0, 1)  # Scrape the first page
+# except Exception as e:
+#     print(f"Error during scraping: {e}")
+#     listings_data = json.dumps({"error": "Failed to scrape listings"})  # Error as JSON
 
 @app.route("/")
 def main():
@@ -27,6 +27,7 @@ def getListings():
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
 
+    listings_data = scrap_daft.daft_scraper_json(0, 1, location)
     return Response(listings_data, mimetype='application/json') # Return the pre-scraped JSON
 
 if __name__ == "__main__":
