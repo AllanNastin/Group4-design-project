@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
+import time
 
 import datetime
 
@@ -99,11 +100,39 @@ def getListings():
         print(f"Error from mysql connector: {e}")
         return jsonify({"error": f"{e}"}), 500
 
+def isDbEmpty():
+    load_dotenv()
+    try:
+        conn = mysql.connector.connect(
+            host=os.getenv('DATABASE_HOST'),
+            port=os.getenv('DATABASE_PORT'),
+            user=os.getenv('DATABASE_USER'),
+            password=os.getenv('DATABASE_PASSWORD'),
+            database=os.getenv('DATABASE_NAME')
+        )
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT COUNT(*) FROM PropertyDetails;
+            """)
+            countDb = cursor.fetchone()[0]
+        return countDb <= 0
+    except mysql.connector.Error as e:
+        print(f"Error from mysql connector: {e}")
+        return False
+
 if __name__ == "__main__":
+    time.sleep(10)
     scheduler.start()
     print(f"scheduler started: {scheduler.get_jobs()}")
     
     for job in scheduler.get_jobs():
         print(f"Job ID: {job.id}, Next Run: {job.next_run_time}")
+
+    # scrap at the start of server if database empty
+    print(isDbEmpty())
+    if isDbEmpty():
+        print(f"Database empty: init scrap @{datetime.datetime.now()}", flush=True)
+        scrap_daft.scrap()
+    
     app.run(host="0.0.0.0", port=5300)
 
