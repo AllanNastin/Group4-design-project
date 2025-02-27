@@ -27,7 +27,7 @@ def getListings():
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
 
-    if listing_type is "sale":
+    if "sale" in listing_type:
         listings_data = scrap_daft.daft_scraper_json(0, 1, eircode=location, listing_type=listing_type)
     else:
         listings_data = scrap_daft.daft_scraper_json(0, 1, listing_type=listing_type)
