@@ -11,6 +11,10 @@ google_api_key = os.getenv("GOOGLE_API")
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "https://gdp4.sprinty.tech", "https://dev-gdp4.sprinty.tech"])
 
+# Load Eircode.json
+with open('Eircodes.json') as f:
+    eircode_map = json.load(f)
+
 @app.route("/")
 def main():
     return jsonify({"data": "hello world"})
@@ -32,14 +36,25 @@ def getListings():
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
 
-    if listing_type is "sale":
+    if listing_type == "sale":
         listings_data = scrap_daft.daft_scraper_json(0, 1, eircode=location, listing_type=listing_type)
-        # listings = json.loads(listings_data)
+        # now we have the listings, we need to get the distance and time to the location
+        # for each listing
+        listings = json.loads(listings_data)
         # print(f"Listings: {listings}")  # Debug print
-        # for listing in listings['listings']:
-        #     print(f"Processing listing: {listing}")  # Debug print
-        #     listing["distance"], listing["car"], listing["walk"] = get_distance_and_times(location, listing["address"], google_api_key)
-        # listings_data = json.dumps(listings)
+        for listing in listings['listings']:
+            # print(f"Processing listing: {listing}")  # Debug print
+            listing_location = eircode_map.get(location.upper(), location)  # Translate Eircode to location name
+            if listing_location == location.upper():
+                listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
+            print(f"Listing location: {listing_location}")  # Debug print
+            distance, car_time, walk_time = get_distance_and_times(listing_location, listing["address"], google_api_key)
+            listing["distance"] = distance
+            listing["commute_times"] = {
+                "car": str(car_time),
+                "walk": str(walk_time)
+            }
+        listings_data = json.dumps(listings)
     else:
         listings_data = scrap_daft.daft_scraper_json(0, 1, listing_type=listing_type)
     return Response(listings_data, mimetype='application/json') # Return the pre-scraped JSON

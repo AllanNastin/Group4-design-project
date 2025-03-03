@@ -10,7 +10,8 @@ def get_distance_and_times(origin, destination, api_key):
         departure_time=datetime.now()
     )
     driving_distance = result['rows'][0]['elements'][0]['distance']['text']
-    driving_time = result['rows'][0]['elements'][0]['duration']['text']
+    driving_time_seconds = result['rows'][0]['elements'][0]['duration']['value']
+    driving_time_minutes = driving_time_seconds // 60
 
     walk_result = gmaps.distance_matrix(
         origins=[origin],
@@ -18,5 +19,7 @@ def get_distance_and_times(origin, destination, api_key):
         mode="walking"
     )
 
-    walking_time = walk_result['rows'][0]['elements'][0]['duration']['text']
-    return driving_distance, driving_time, walking_time
+    walking_time_seconds = walk_result['rows'][0]['elements'][0]['duration']['value']
+    walking_time_minutes = walking_time_seconds // 60
+
+    return driving_distance, driving_time_minutes, walking_time_minutes
