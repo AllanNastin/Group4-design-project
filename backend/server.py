@@ -1,8 +1,11 @@
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 import json
+from maps import get_distance_and_times
 import scrap_daft
+import os
 
+google_api_key = os.getenv("GOOGLE_API")
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "https://gdp4.sprinty.tech", "https://dev-gdp4.sprinty.tech"])
 
@@ -16,6 +19,13 @@ CORS(app, origins=["http://localhost:3000", "https://gdp4.sprinty.tech", "https:
 @app.route("/")
 def main():
     return jsonify({"data": "hello world"})
+
+@app.route("/maps")
+def maps():
+    origin = request.args.get('origin')
+    dest = request.args.get('dest')
+    dist, drive, walk = get_distance_and_times(origin, dest, google_api_key)
+    return jsonify({"distance": dist, "drive_time": drive, "walk_time": walk})
 
 @app.route("/getListings", methods=['GET'])
 def getListings():
