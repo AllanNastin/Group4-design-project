@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - maps
 
 jobs:
   backend:
@@ -44,7 +45,8 @@ jobs:
 
   backend-dev:
     runs-on: ubuntu-latest
-    # if: github.ref == 'refs/heads/dev'
+    # dev or maps branch
+    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/maps'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
