@@ -36,7 +36,7 @@ def getListings():
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
 
-    if listing_type == "sale":
+    if "sale" in listing_type:
         listings_data = scrap_daft.daft_scraper_json(0, 1, eircode=location, listing_type=listing_type)
         # now we have the listings, we need to get the distance and time to the location
         # for each listing
