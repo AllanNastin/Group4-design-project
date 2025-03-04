@@ -5,14 +5,13 @@ on:
     branches:
       - main
       - dev
-      - maps
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        branch: [main, dev, maps]
+        branch: [main, dev]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
