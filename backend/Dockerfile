@@ -15,8 +15,5 @@ ADD ./requirements.txt /app
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
 
-ARG GOOGLE_API_KEY
-ENV GOOGLE_API_KEY=$GOOGLE_API_KEY
-
 # Run app.py when the container launches
 CMD ["python", "server.py"]

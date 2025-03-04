@@ -41,7 +41,6 @@ jobs:
         run: |
           TAG=$(if [[ "${{ matrix.branch }}" == "main" ]]; then echo "latest"; else echo "${{ matrix.branch }}"; fi)
           docker build \
-            --build-arg GOOGLE_API_KEY=${{ secrets.GOOGLE_API }} \
             -t ghcr.io/allannastin/gdp4-backend:$TAG \
             ./backend
           docker push ghcr.io/allannastin/gdp4-backend:$TAG
