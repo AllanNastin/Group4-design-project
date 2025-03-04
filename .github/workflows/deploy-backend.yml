@@ -1,4 +1,4 @@
-name: Build & Push Back
+name: Build & Push Backend
 
 on:
   push:
@@ -8,73 +8,40 @@ on:
       - maps
 
 jobs:
-  backend:
+  build-and-push:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        branch: [main, dev, maps]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Check Commit Type
-        uses: gsactions/commit-message-checker@v1
-        with:
-          pattern: '^(?!.*\[no-build]).*$'
-          flags: "gms"
-          error: "Force no-build!"
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1.2.0
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1.6.0
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1.10.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.TOKEN }}
-      - name: Build and push
-        id: docker_build
-        uses: docker/build-push-action@v4
-        with:
-          context: ./backend
-          push: true
-          tags: ghcr.io/allannastin/gdp4-backend:latest
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args:  # Pass the Google API key as a build argument
-            GOOGLE_API_KEY: ${{ secrets.GOOGLE_API }}
 
-  backend-dev:
-    runs-on: ubuntu-latest
-    # dev or maps branch
-    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/maps'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
       - name: Check Commit Type
         uses: gsactions/commit-message-checker@v1
         with:
           pattern: '^(?!.*\[no-build]).*$'
           flags: "gms"
           error: "Force no-build!"
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1.2.0
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1.6.0
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1.10.0
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.TOKEN }}
+
       - name: Build and push
-        id: docker_build
-        uses: docker/build-push-action@v4
-        with:
-          context: ./backend
-          push: true
-          tags: ghcr.io/allannastin/gdp4-backend:dev
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args:  # Pass the Google API key as a build argument
-            GOOGLE_API_KEY: ${{ secrets.GOOGLE_API }}
+        run: |
+          TAG=$(if [[ "${{ matrix.branch }}" == "main" ]]; then echo "latest"; else echo "${{ matrix.branch }}"; fi)
+          docker build \
+            --build-arg GOOGLE_API_KEY=${{ secrets.GOOGLE_API }} \
+            -t ghcr.io/allannastin/gdp4-backend:$TAG \
+            ./backend
+          docker push ghcr.io/allannastin/gdp4-backend:$TAG
