@@ -7,7 +7,10 @@ WORKDIR /app
 # Add the current directory contents into the container at /app
 ADD ./server.py /app
 ADD ./scrap_daft.py /app
+ADD ./maps.py /app
+ADD ./Eircodes.json /app
 ADD ./requirements.txt /app
+
 
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt

@@ -3,4 +3,5 @@ beautifulsoup4
 # mysql-connector-python
 flask
 flask-cors
-# dotenv
+python-dotenv
+googlemaps
