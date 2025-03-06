@@ -40,22 +40,27 @@ const ListingsParser = () => {
                     setError(`(State) Error loading listings`);
                     navigate("/search");
                 }
-                const payload = state.payload;
-                const response = await axios.get(`${apiUrl}/getListings`, {
-                    // add request params
-                    params: {
-                        type : payload.type,
-                        location : payload.location,
-                        commute : payload.commute
-                    }
-                });
-                const status = response.status;
-                // if OK response
-                if(status === 200) {
-                    setListingsData(response.data);
+                if(state.listingsData) {
+                    setListingsData(state.listingsData);
                 }
                 else {
-                    setError(`(${status}) Error loading listings`)
+                    const payload = state.payload;
+                    const response = await axios.get(`${apiUrl}/getListings`, {
+                        // add request params
+                        params: {
+                            type : payload.type,
+                            location : payload.location,
+                            commute : payload.commute
+                        }
+                    });
+                    const status = response.status;
+                    // if OK response
+                    if(status === 200) {
+                        setListingsData(response.data);
+                    }
+                    else {
+                        setError(`(${status}) Error loading listings`)
+                    }
                 }
             } catch (error) {
                 setError(`Error contacting server`);
@@ -67,7 +72,7 @@ const ListingsParser = () => {
     }, [state, apiUrl, navigate]);
 
     const handleListingClick = (listing) => {
-        navigate("/listing/" + listing.listing_id,  { state: listing });
+        navigate("/listing/" + listing.listing_id,  { state: { listing: listing, listingsData: listingsData } });
     };
 
     if (loading) return <p className="text-center mt-5">Loading property listings...</p>;
