@@ -17,7 +17,7 @@ const IndividualListings = () => {
       navigate("/search");
     }
     else {
-      setListing(state);
+      setListing(state.listing);
       setLoading(false);
     }
   }, [state, navigate]);
@@ -61,7 +61,7 @@ const IndividualListings = () => {
               <p className="lead">{listing.description || "No description available."}</p>
 
               <div className="d-flex justify-content-between">
-                <Button variant="secondary" onClick={() => navigate(-1)}>Back to Listings</Button>
+                <Button variant="secondary" onClick={() => navigate("/listings", { state: { listingsData: state.listingsData } })}>Back to Listings</Button>
                 <Button variant="success">Contact Landlord</Button>
               </div>
             </Card.Body>
