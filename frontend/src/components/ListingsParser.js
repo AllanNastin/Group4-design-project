@@ -77,9 +77,19 @@ const ListingsParser = () => {
 
     if (loading) return <p className="text-center mt-5">Loading property listings...</p>;
     if (error) return <p className="text-danger text-center mt-5">{error}</p>;
-    if (!listingsData || !listingsData.listings || listingsData.listings.length === 0)
-        return <p className="text-center mt-5">No properties found.</p>;
-
+    if (!listingsData || !listingsData.listings || listingsData.listings.length === 0) {
+        return (
+            <Container className="mt-5">
+                {/* Back Button */}
+                <Button variant="secondary" className="mb-4" onClick={() => navigate(-1)}>
+                    ← Back
+                </Button>
+                <h1 className="text-center mb-4">Property Listings</h1>
+                <h5 className="text-muted text-center">Total Results: 0</h5>
+                <p className="text-center mt-5">No properties found.</p>
+            </Container>
+        );
+    }
     return (
         <Container className="mt-5">
             {/* Back Button */}
