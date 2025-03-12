@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Container, Form, Card, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import Select from "react-select";
 
 const SearchForm = () => {
     const [showFilters, setShowFilters] = useState(false);
@@ -24,6 +25,11 @@ const SearchForm = () => {
             .catch((error) => console.error("Error loading Eircodes:", error));
     }, []);
 
+    // select list
+    const propertyOptions = eircodeList.map((entry) => ({
+        label: `${entry.location} (${entry.code})`,
+        value: entry.code,
+    }));
     const submitForm = (e) => {
         e.preventDefault();
         const form = e.currentTarget;
@@ -47,23 +53,35 @@ const SearchForm = () => {
                         <Form.Check inline type="radio" label="Rent" name="type" value="rent" defaultChecked />
                         <Form.Check inline type="radio" label="Buy" name="type" value="sale" />
 
-                        {/* ✅ Property Eircode Dropdown */}
+                        {/*/!* ✅ Property Eircode Dropdown *!/*/}
+                        {/*<Form.Group className="mb-3">*/}
+                        {/*    <Form.Label>I'm looking for properties in</Form.Label>*/}
+                        {/*    <Form.Select*/}
+                        {/*        name="location"*/}
+                        {/*        value={selectedPropertyEircode}*/}
+                        {/*        onChange={(e) => setSelectedPropertyEircode(e.target.value)}*/}
+                        {/*        required*/}
+                        {/*    >*/}
+                        {/*        <option value="">-- Select an Eircode --</option>*/}
+                        {/*        {eircodeList.map((entry) => (*/}
+                        {/*            <option key={entry.location} value={entry.code}>*/}
+                        {/*                {entry.location} ({entry.code})*/}
+                        {/*            </option>*/}
+                        {/*        ))}*/}
+                        {/*    </Form.Select>*/}
+                        {/*    <Form.Control.Feedback type="invalid">Please select a property eircode.</Form.Control.Feedback>*/}
+                        {/*</Form.Group>*/}
                         <Form.Group className="mb-3">
                             <Form.Label>I'm looking for properties in</Form.Label>
-                            <Form.Select
+                            <Select
                                 name="location"
-                                value={selectedPropertyEircode}
-                                onChange={(e) => setSelectedPropertyEircode(e.target.value)}
-                                required
-                            >
-                                <option value="">-- Select an Eircode --</option>
-                                {eircodeList.map((entry) => (
-                                    <option key={entry.location} value={entry.code}>
-                                        {entry.location} ({entry.code})
-                                    </option>
-                                ))}
-                            </Form.Select>
-                            <Form.Control.Feedback type="invalid">Please select a property eircode.</Form.Control.Feedback>
+                                options={propertyOptions}
+                                placeholder="Please select a location..."
+                                onChange={(option) => setSelectedPropertyEircode(option.value)}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                Please select a property eircode.
+                            </Form.Control.Feedback>
                         </Form.Group>
 
                         {/* ✅ Commute Eircode Dropdown */}
