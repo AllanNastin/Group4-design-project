@@ -9,7 +9,7 @@ function App() {
       <Routes>
         <Route path="/search" element={<Search/>} />
         <Route path="/listings" element={<Listings/>} />
-        <Route path="/listing/:id" element={<IndividualListings />} />
+        <Route path="/listing/:id/:commute" element={<IndividualListings />} />
 
         <Route path="*" element={<Navigate to="/search" replace />} />
       </Routes>
