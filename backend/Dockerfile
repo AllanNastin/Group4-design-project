@@ -14,6 +14,8 @@ ADD ./requirements.txt /app
 ADD ./Sample.json /app
 ADD ./scrap_daft.py /app
 ADD ./Eircodes.json /app
+ADD ./maps.py /app
+
 
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt

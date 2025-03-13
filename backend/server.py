@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 import json
+from maps import get_distance_and_times
 import scrap_daft
 import mysql.connector
 from dotenv import load_dotenv
@@ -8,9 +9,10 @@ import os
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 import time
-from maps import get_distance_and_times
 import datetime
 
+load_dotenv()
+google_api_key = os.getenv("GOOGLE_API_KEY")
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "https://gdp4.sprinty.tech", "https://dev-gdp4.sprinty.tech"])
 

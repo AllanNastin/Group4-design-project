@@ -84,7 +84,90 @@ const SearchForm = () => {
                             </Form.Select>
                             <Form.Control.Feedback type="invalid">Please select a commute eircode.</Form.Control.Feedback>
                         </Form.Group>
-
+                        {showFilters && (
+                            <>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Price</Form.Label>
+                                    <div className="mb-3 d-flex align-items-center">
+                                        <Form.Select aria-label="Default select example" name="price-min">
+                                            <option>Min</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                        </Form.Select>
+                                        <Form.Text style={{ color: 'white' }} className="mx-2">
+                                            to
+                                        </Form.Text>
+                                        <Form.Select aria-label="Default select example" name="price-max">
+                                            <option>Max</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                        </Form.Select>
+                                    </div>
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Bedrooms</Form.Label>
+                                    <div className="mb-3 d-flex align-items-center">
+                                        <Form.Select aria-label="Default select example" name="beds-min">
+                                            <option>Min</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                        </Form.Select>
+                                        <Form.Text style={{ color: 'white' }} className="mx-2">
+                                            to
+                                        </Form.Text>
+                                        <Form.Select aria-label="Default select example" name="beds-max">
+                                            <option>Max</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                        </Form.Select>
+                                    </div>
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Bathrooms</Form.Label>
+                                    <div className="mb-3 d-flex align-items-center">
+                                        <Form.Select aria-label="Default select example" name="baths-min">
+                                            <option>Min</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                        </Form.Select>
+                                        <Form.Text style={{ color: 'white' }} className="mx-2">
+                                            to
+                                        </Form.Text>
+                                        <Form.Select aria-label="Default select example" name="baths-max">
+                                            <option>Max</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                        </Form.Select>
+                                    </div>
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Size</Form.Label>
+                                    <div className="mb-3 d-flex align-items-center">
+                                        <Form.Select aria-label="Default select example" name="size-min">
+                                            <option>Min sq ft</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                        </Form.Select>
+                                        <Form.Text style={{ color: 'white' }} className="mx-2">
+                                            to
+                                        </Form.Text>
+                                        <Form.Select aria-label="Default select example" name="size-max">
+                                            <option>Max sq ft</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                        </Form.Select>
+                                    </div>
+                                </Form.Group>
+                            </>
+                        )}
                         {/* Buttons */}
                         <Button
                             style={{ marginRight: "10px" }}

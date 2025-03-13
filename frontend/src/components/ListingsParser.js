@@ -40,22 +40,27 @@ const ListingsParser = () => {
                     setError(`(State) Error loading listings`);
                     navigate("/search");
                 }
-                const payload = state.payload;
-                const response = await axios.get(`${apiUrl}/getListings`, {
-                    // add request params
-                    params: {
-                        type : payload.type,
-                        location : payload.location,
-                        commute : payload.commute
-                    }
-                });
-                const status = response.status;
-                // if OK response
-                if(status === 200) {
-                    setListingsData(response.data);
+                if(state.listingsData) {
+                    setListingsData(state.listingsData);
                 }
                 else {
-                    setError(`(${status}) Error loading listings`)
+                    const payload = state.payload;
+                    const response = await axios.get(`${apiUrl}/getListings`, {
+                        // add request params
+                        params: {
+                            type : payload.type,
+                            location : payload.location,
+                            commute : payload.commute
+                        }
+                    });
+                    const status = response.status;
+                    // if OK response
+                    if(status === 200) {
+                        setListingsData(response.data);
+                    }
+                    else {
+                        setError(`(${status}) Error loading listings`)
+                    }
                 }
             } catch (error) {
                 setError(`Error contacting server`);
@@ -67,14 +72,24 @@ const ListingsParser = () => {
     }, [state, apiUrl, navigate]);
 
     const handleListingClick = (listing) => {
-        navigate("/listing/" + listing.listing_id,  { state: listing });
+        navigate("/listing/" + listing.listing_id,  { state: { listing: listing, listingsData: listingsData } });
     };
 
     if (loading) return <p className="text-center mt-5">Loading property listings...</p>;
     if (error) return <p className="text-danger text-center mt-5">{error}</p>;
-    if (!listingsData || !listingsData.listings || listingsData.listings.length === 0)
-        return <p className="text-center mt-5">No properties found.</p>;
-
+    if (!listingsData || !listingsData.listings || listingsData.listings.length === 0) {
+        return (
+            <Container className="mt-5">
+                {/* Back Button */}
+                <Button variant="secondary" className="mb-4" onClick={() => navigate(-1)}>
+                    ← Back
+                </Button>
+                <h1 className="text-center mb-4">Property Listings</h1>
+                <h5 className="text-muted text-center">Total Results: 0</h5>
+                <p className="text-center mt-5">No properties found.</p>
+            </Container>
+        );
+    }
     return (
         <Container className="mt-5">
             {/* Back Button */}
