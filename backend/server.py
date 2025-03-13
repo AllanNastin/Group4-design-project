@@ -8,12 +8,15 @@ import os
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 import time
-
+from maps import get_distance_and_times
 import datetime
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "https://gdp4.sprinty.tech", "https://dev-gdp4.sprinty.tech"])
 
+# Load Eircode.json
+with open('Eircodes.json') as f:
+    eircode_map = json.load(f)
 
 # Schedule Scrapper
 def scheduled_scrap():
@@ -24,20 +27,16 @@ def scheduled_scrap():
 scheduler = BackgroundScheduler()
 scheduler.add_job(scheduled_scrap, 'cron', hour=17, minute=30)
 
-
-# shutdown when the app stops
-#atexit.register(lambda: scheduler.shutdown())
-
-# Pre-scrape listings on startup
-# try:
-#     listings_data = scrap_daft.daft_scraper_json(0, 1)  # Scrape the first page
-# except Exception as e:
-#     print(f"Error during scraping: {e}")
-#     listings_data = json.dumps({"error": "Failed to scrape listings"})  # Error as JSON
-
 @app.route("/")
 def main():
     return jsonify({"data": "hello world"})
+
+@app.route("/maps")
+def maps():
+    origin = request.args.get('origin')
+    dest = request.args.get('dest')
+    dist, drive, walk = get_distance_and_times(origin, dest, google_api_key)
+    return jsonify({"distance": dist, "drive_time": drive, "walk_time": walk})
 
 @app.route("/getListings", methods=['GET'])
 def getListings():
@@ -66,6 +65,7 @@ def getListings():
             password=os.getenv('DATABASE_PASSWORD'),
             database=os.getenv('DATABASE_NAME')
         )
+        print(len(location), flush=True)
         with conn.cursor() as cursor:
             if len(location) == 3:
                 cursor.execute("""
@@ -89,7 +89,12 @@ def getListings():
                     SELECT Link FROM PropertyPictures WHERE PropertyId = %s;
                 """, (listing[0],))
                 images = cursor.fetchall()
-                    
+                listing_location = eircode_map.get(location.upper(), location) # Translate Eircode to location name
+                if listing_location == location.upper():
+                    listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
+                print(f"Listing location: {listing_location}", flush=True)  # Debug print
+                distance, car_time, walk_time = get_distance_and_times(listing_location, listing["address"], google_api_key)
+
                 jsonEntry = {
                     "listing_id": listing[0],
                     "address": listing[1],
@@ -98,7 +103,12 @@ def getListings():
                     "bathrooms": listing[4],
                     "size": listing[5],
                     "current_price": listing[7],
-                    "images": [sub[0] for sub in images]
+                    "images": [sub[0] for sub in images],
+                    "distance": distance,
+                    "commute_times": {
+                        "car": str(car_time),
+                        "walk": str(walk_time)
+                    }
                 }
                 response["listings"].append(jsonEntry)
             
