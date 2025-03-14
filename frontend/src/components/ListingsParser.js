@@ -72,7 +72,8 @@ const ListingsParser = () => {
     }, [state, apiUrl, navigate]);
 
     const handleListingClick = (listing) => {
-        navigate("/listing/" + listing.listing_id,  { state: { listing: listing, listingsData: listingsData } });
+        const payload = state.payload;
+        navigate("/listing/" + listing.listing_id + "/" + payload.commute,  { state: { listing: listing, commute: payload.commute, listingsData: listingsData } });
     };
 
     if (loading) return <p className="text-center mt-5">Loading property listings...</p>;
