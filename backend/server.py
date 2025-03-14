@@ -85,7 +85,7 @@ def getListings():
                 """, (ForSaleValue,))
             results = cursor.fetchall()
             response["total_results"] = len(results)
-                
+            console.log(results)
             for listing in results:
                 cursor.execute("""
                     SELECT Link FROM PropertyPictures WHERE PropertyId = %s;
@@ -121,7 +121,7 @@ def getListings():
         print(f"Error from mysql connector: {e}")
         return jsonify({"error": f"{e}"}), 500
 
-def isDbEmpty():
+def initScrap():
     load_dotenv()
     try:
         conn = mysql.connector.connect(
@@ -133,7 +133,7 @@ def isDbEmpty():
         )
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT COUNT(*) FROM PropertyDetails;
+                SELECT COUNT(*) FROM PropertyPriceHistory WHERE Timestamp >= NOW() - INTERVAL 1 DAY;
             """)
             countDb = cursor.fetchone()[0]
         return countDb <= 0
@@ -150,9 +150,9 @@ if __name__ == "__main__":
         print(f"Job ID: {job.id}, Next Run: {job.next_run_time}")
 
     # scrap at the start of server if database empty
-    print(isDbEmpty())
-    if isDbEmpty():
-        print(f"Database empty: init scrap @{datetime.datetime.now()}", flush=True)
+    print(f"Database needs initial scrap: {initScrap()}")
+    if initScrap():
+        print(f"init scrap @{datetime.datetime.now()}", flush=True)
         scrap_daft.scrap()
     
     app.run(host="0.0.0.0", port=5300)
