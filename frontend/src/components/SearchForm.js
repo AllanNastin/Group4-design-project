@@ -85,22 +85,34 @@ const SearchForm = () => {
                         </Form.Group>
 
                         {/* ✅ Commute Eircode Dropdown */}
+                        {/*<Form.Group className="mb-3">*/}
+                        {/*    <Form.Label>with commuter times to</Form.Label>*/}
+                        {/*    <Form.Select*/}
+                        {/*        name="commute"*/}
+                        {/*        value={selectedCommuteEircode}*/}
+                        {/*        onChange={(e) => setSelectedCommuteEircode(e.target.value)}*/}
+                        {/*        required*/}
+                        {/*    >*/}
+                        {/*        <option value="">-- Select an Eircode --</option>*/}
+                        {/*        {eircodeList.map((entry) => (*/}
+                        {/*            <option key={entry.location} value={entry.code}>*/}
+                        {/*                {entry.location} ({entry.code})*/}
+                        {/*            </option>*/}
+                        {/*        ))}*/}
+                        {/*    </Form.Select>*/}
+                        {/*    <Form.Control.Feedback type="invalid">Please select a commute eircode.</Form.Control.Feedback>*/}
+                        {/*</Form.Group>*/}
                         <Form.Group className="mb-3">
-                            <Form.Label>with commuter times to</Form.Label>
-                            <Form.Select
-                                name="commute"
-                                value={selectedCommuteEircode}
-                                onChange={(e) => setSelectedCommuteEircode(e.target.value)}
-                                required
-                            >
-                                <option value="">-- Select an Eircode --</option>
-                                {eircodeList.map((entry) => (
-                                    <option key={entry.location} value={entry.code}>
-                                        {entry.location} ({entry.code})
-                                    </option>
-                                ))}
-                            </Form.Select>
-                            <Form.Control.Feedback type="invalid">Please select a commute eircode.</Form.Control.Feedback>
+                            <Form.Label>I'm looking for properties in</Form.Label>
+                            <Select
+                                name="location"
+                                options={propertyOptions}
+                                placeholder="Please select a location..."
+                                onChange={(option) => setSelectedPropertyEircode(option.value)}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                Please select a property eircode.
+                            </Form.Control.Feedback>
                         </Form.Group>
                         {showFilters && (
                             <>
