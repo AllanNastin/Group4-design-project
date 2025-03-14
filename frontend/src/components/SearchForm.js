@@ -7,7 +7,7 @@ const SearchForm = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [eircodeList, setEircodeList] = useState([]);
     const [selectedPropertyEircode, setSelectedPropertyEircode] = useState("");
-    const [selectedCommuteEircode, setSelectedCommuteEircode] = useState("");
+    const [selectedCommuteEircode] = useState("");
     const [validated, setValidated] = useState(false);
     const navigate = useNavigate();
 
