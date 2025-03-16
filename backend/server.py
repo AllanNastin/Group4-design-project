@@ -85,17 +85,18 @@ def getListings():
                 """, (ForSaleValue,))
             results = cursor.fetchall()
             response["total_results"] = len(results)
-            console.log(results)
+            print(f"Total results: {len(results)}", flush=True)  # Debug print
             for listing in results:
                 cursor.execute("""
                     SELECT Link FROM PropertyPictures WHERE PropertyId = %s;
                 """, (listing[0],))
                 images = cursor.fetchall()
+                print(f"Listing: {listing}", flush=True)  # Debug print
                 listing_location = eircode_map.get(location.upper(), location) # Translate Eircode to location name
                 if listing_location == location.upper():
                     listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
                 print(f"Listing location: {listing_location}", flush=True)  # Debug print
-                distance, car_time, walk_time = get_distance_and_times(listing_location, listing["address"], google_api_key)
+                distance, car_time, walk_time = get_distance_and_times(listing_location, listing[1], google_api_key)
 
                 jsonEntry = {
                     "listing_id": listing[0],
@@ -141,8 +142,28 @@ def initScrap():
         print(f"Error from mysql connector: {e}")
         return False
 
+def try_connect_db():
+     while True:
+        try:
+            conn = mysql.connector.connect(
+                host=os.getenv('DATABASE_HOST'),
+                port=os.getenv('DATABASE_PORT'),
+                user=os.getenv('DATABASE_USER'),
+                password=os.getenv('DATABASE_PASSWORD'),
+                database=os.getenv('DATABASE_NAME')
+            )
+            print("Database connection successful", flush=True)
+            return conn
+        except mysql.connector.Error as e:
+            print(f"Error connecting to database: {e}", flush=True)
+            print("Retrying in 5 seconds...", flush=True)
+            time.sleep(5)
+
 if __name__ == "__main__":
-    time.sleep(10)
+    # wait for db to be ready
+    conn = try_connect_db()
+    conn.close()
+    
     scheduler.start()
     print(f"scheduler started: {scheduler.get_jobs()}")
     
