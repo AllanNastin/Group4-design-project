@@ -50,10 +50,11 @@ def getListings():
         print(listing_type, location, commute, flush =True)
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
-    ForSaleValue = 0
+    ForSaleValue = 1
 
-    if listing_type == "sale":
-        ForSaleValue = 1
+    if listing_type == "rent":
+        ForSaleValue = 0
+        location = ""
         # return all
     try:
         response = {
@@ -92,11 +93,13 @@ def getListings():
                 """, (listing[0],))
                 images = cursor.fetchall()
                 print(f"Listing: {listing}", flush=True)  # Debug print
-                listing_location = eircode_map.get(location.upper(), location) # Translate Eircode to location name
-                if listing_location == location.upper():
-                    listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
-                print(f"Listing location: {listing_location}", flush=True)  # Debug print
-                distance, car_time, walk_time = get_distance_and_times(listing_location, listing[1], google_api_key)
+                distance, car_time, walk_time = 0,0,0
+                if ForSaleValue:
+                    listing_location = eircode_map.get(location.upper(), location) # Translate Eircode to location name
+                    if listing_location == location.upper():
+                        listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
+                    print(f"Listing location: {listing_location}", flush=True)  # Debug print
+                    distance, car_time, walk_time = get_distance_and_times(listing_location, listing[1], google_api_key)
 
                 jsonEntry = {
                     "listing_id": listing[0],
