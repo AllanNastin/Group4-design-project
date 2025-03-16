@@ -1,4 +1,4 @@
-name: Build & Push Backend
+name: Build & Push Backend and Database
 
 on:
   push:
@@ -36,10 +36,18 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.TOKEN }}
 
-      - name: Build and push
+      - name: Build and push backend
         run: |
           TAG=$(if [[ "${{ matrix.branch }}" == "main" ]]; then echo "latest"; else echo "${{ matrix.branch }}"; fi)
           docker build \
             -t ghcr.io/allannastin/gdp4-backend:$TAG \
             ./backend
           docker push ghcr.io/allannastin/gdp4-backend:$TAG
+
+      - name: Build and push database
+        run: |
+          TAG=$(if [[ "${{ matrix.branch }}" == "main" ]]; then echo "latest"; else echo "${{ matrix.branch }}"; fi)
+          docker build \
+            -t ghcr.io/allannastin/gdp4-db:$TAG \
+            ./backend/db
+          docker push ghcr.io/allannastin/gdp4-db:$TAG
