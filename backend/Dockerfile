@@ -4,12 +4,17 @@ FROM python:3.8-slim-buster
 # Set the working directory in the container to /app
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libffi-dev
+
 # Add the current directory contents into the container at /app
 ADD ./server.py /app
-ADD ./scrap_daft.py /app
-ADD ./maps.py /app
-ADD ./Eircodes.json /app
 ADD ./requirements.txt /app
+ADD ./Sample.json /app
+ADD ./scrap_daft.py /app
+ADD ./Eircodes.json /app
+ADD ./maps.py /app
 
 
 # Install any needed packages specified in requirements.txt

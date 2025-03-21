@@ -72,7 +72,8 @@ const ListingsParser = () => {
     }, [state, apiUrl, navigate]);
 
     const handleListingClick = (listing) => {
-        navigate("/listing/" + listing.listing_id,  { state: { listing: listing, listingsData: listingsData } });
+        const payload = state.payload;
+        navigate("/listing/" + listing.listing_id + "/" + payload.commute,  { state: { listing: listing, commute: payload.commute, listingsData: listingsData } });
     };
 
     if (loading) return <p className="text-center mt-5">Loading property listings...</p>;
@@ -109,9 +110,9 @@ const ListingsParser = () => {
                             <Card.Body>
                                 <Card.Title className="fs-5">{listing.address}</Card.Title>
                                 <Card.Text>
-                                    <strong>Price:</strong> €{listing.price.toLocaleString()} <br />
-                                    <strong>Bedrooms:</strong> {listing.bedrooms} | <strong>Bathrooms:</strong> {listing.bathrooms} <br />
-                                    <strong>Size:</strong> {listing.size} sq ft <br />
+                                    <strong>Price:</strong> {listing.price ? `€${listing.price.toLocaleString()}` : 'N/A'} <br />
+                                    <strong>Bedrooms:</strong> {listing.bedrooms !== null ? listing.bedrooms : 'N/A'} | <strong>Bathrooms:</strong> {listing.bathrooms !== null ? listing.bathrooms : 'N/A'} <br />
+                                    <strong>Size:</strong> {listing.size !== null ? `${listing.size} sq ft` : 'N/A'} <br />
                                     🚗 {listing.commute_times?.car} min | 🚶 {listing.commute_times?.walk} min
                                 </Card.Text>
                                 <Button variant="primary" onClick={() => handleListingClick(listing)}>
