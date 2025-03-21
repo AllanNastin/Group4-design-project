@@ -10,7 +10,6 @@ const SearchForm = () => {
     const [validated, setValidated] = useState(false);
     const navigate = useNavigate();
 
-    // ✅ Fetch Eircodes.json dynamically
     useEffect(() => {
         fetch("/Eircodes.json")
             .then((response) => response.json())
@@ -33,6 +32,7 @@ const SearchForm = () => {
         } else {
             const formData = new FormData(e.target);
             const payload = Object.fromEntries(formData);
+            console.log("Form payload:", payload);
             navigate("/listings", { state: { payload } });
         }
 
@@ -47,7 +47,7 @@ const SearchForm = () => {
                         <Form.Check inline type="radio" label="Rent" name="type" value="rent" defaultChecked />
                         <Form.Check inline type="radio" label="Buy" name="type" value="sale" />
 
-                        {/* ✅ Property Eircode Dropdown */}
+                        {/* Property Eircode Dropdown */}
                         <Form.Group className="mb-3">
                             <Form.Label>I'm looking for properties in</Form.Label>
                             <Form.Select
@@ -65,27 +65,21 @@ const SearchForm = () => {
                             </Form.Select>
                         </Form.Group>
 
-                        {/* ✅ Commute Eircode Dropdown */}
+                        {/* Commute Eircode Dropdown */}
                         <Form.Group className="mb-3">
                             <Form.Label>with commuter times to</Form.Label>
-                            <Form.Select
+                            <Form.Control
+                                type="text"
                                 name="commute"
-                                value={selectedCommuteEircode}
-                                onChange={(e) => setSelectedCommuteEircode(e.target.value)}
+                                placeholder="Enter destination (e.g. Dublin City Centre)"
                                 required
-                            >
-                                <option value="">-- Select an Eircode --</option>
-                                {eircodeList.map((entry) => (
-                                    <option key={entry.location} value={entry.code}>
-                                        {entry.location} ({entry.code})
-                                    </option>
-                                ))}
-                            </Form.Select>
+                            />
+                            <Form.Control.Feedback type="invalid">This field cannot be left blank</Form.Control.Feedback>
                         </Form.Group>
 
                         {showFilters && (
                             <>
-                                {/* ✅ Price Range */}
+                                {/* Price Range */}
                                 <Form.Group className="mb-3">
                                     <Form.Label>Price (€)</Form.Label>
                                     <div className="mb-3 d-flex align-items-center">
@@ -109,7 +103,7 @@ const SearchForm = () => {
                                     </div>
                                 </Form.Group>
 
-                                {/* ✅ Bedrooms */}
+                                {/* Bedrooms */}
                                 <Form.Group className="mb-3">
                                     <Form.Label>Bedrooms</Form.Label>
                                     <Form.Select name="beds">
@@ -122,7 +116,7 @@ const SearchForm = () => {
                                     </Form.Select>
                                 </Form.Group>
 
-                                {/* ✅ Bathrooms */}
+                                {/* Bathrooms */}
                                 <Form.Group className="mb-3">
                                     <Form.Label>Bathrooms</Form.Label>
                                     <Form.Select name="baths">
@@ -135,7 +129,7 @@ const SearchForm = () => {
                                     </Form.Select>
                                 </Form.Group>
 
-                                {/* ✅ Size (sq ft) */}
+                                {/* Size (sq ft) */}
                                 <Form.Group className="mb-3">
                                     <Form.Label>Size (sq ft)</Form.Label>
                                     <div className="mb-3 d-flex align-items-center">
