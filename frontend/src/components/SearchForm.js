@@ -7,7 +7,7 @@ const SearchForm = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [eircodeList, setEircodeList] = useState([]);
     const [selectedPropertyEircode, setSelectedPropertyEircode] = useState("");
-    const [selectedCommuteEircode] = useState("");
+    const [selectedCommuteEircode,setSelectedCommuteEircode] = useState("");
     const [validated, setValidated] = useState(false);
     const navigate = useNavigate();
 
@@ -103,15 +103,15 @@ const SearchForm = () => {
                         {/*    <Form.Control.Feedback type="invalid">Please select a commute eircode.</Form.Control.Feedback>*/}
                         {/*</Form.Group>*/}
                         <Form.Group className="mb-3">
-                            <Form.Label>I'm looking for properties in</Form.Label>
+                            <Form.Label>with commuter times to</Form.Label>
                             <Select
-                                name="location"
+                                name="commute"
                                 options={propertyOptions}
                                 placeholder="Please select a location..."
-                                onChange={(option) => setSelectedPropertyEircode(option.value)}
+                                onChange={(option) => setSelectedCommuteEircode(option.value)} // fix setselected
                             />
                             <Form.Control.Feedback type="invalid">
-                                Please select a property eircode.
+                                Please select a commute eircode.
                             </Form.Control.Feedback>
                         </Form.Group>
                         {showFilters && (
