@@ -25,6 +25,7 @@ const SearchForm = () => {
 
     const submitForm = (e) => {
         e.preventDefault();
+        console.log("Submit button clicked!");
         const form = e.currentTarget;
 
         if (form.checkValidity() === false) {
