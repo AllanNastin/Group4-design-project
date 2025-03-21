@@ -7,7 +7,7 @@ const SearchForm = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [eircodeList, setEircodeList] = useState([]);
     const [selectedPropertyEircode, setSelectedPropertyEircode] = useState("");
-    const [selectedCommuteEircode,setSelectedCommuteEircode] = useState("");
+    const [commuteLocation, setCommuteLocation] = useState(""); // Changed to a text input
     const [validated, setValidated] = useState(false);
     const navigate = useNavigate();
 
@@ -29,6 +29,7 @@ const SearchForm = () => {
         label: `${entry.location} (${entry.code})`,
         value: entry.code,
     }));
+
     const submitForm = (e) => {
         e.preventDefault();
         console.log("Submit button clicked!");
@@ -39,6 +40,7 @@ const SearchForm = () => {
         } else {
             const formData = new FormData(e.target);
             const payload = Object.fromEntries(formData);
+            payload.commute = commuteLocation; // Ensure the text input value is added to the payload
             console.log("Form payload:", payload);
             navigate("/listings", { state: { payload } });
         }
@@ -54,27 +56,7 @@ const SearchForm = () => {
                         <Form.Check inline type="radio" label="Rent" name="type" value="rent" defaultChecked />
                         <Form.Check inline type="radio" label="Buy" name="type" value="sale" />
 
-
-
-                        {/*/!* ✅ Property Eircode Dropdown *!/*/}
-                        {/*<Form.Group className="mb-3">*/}
-                        {/*    <Form.Label>I'm looking for properties in</Form.Label>*/}
-                        {/*    <Form.Select*/}
-                        {/*        name="location"*/}
-                        {/*        value={selectedPropertyEircode}*/}
-                        {/*        onChange={(e) => setSelectedPropertyEircode(e.target.value)}*/}
-                        {/*        required*/}
-                        {/*    >*/}
-                        {/*        <option value="">-- Select an Eircode --</option>*/}
-                        {/*        {eircodeList.map((entry) => (*/}
-                        {/*            <option key={entry.location} value={entry.code}>*/}
-                        {/*                {entry.location} ({entry.code})*/}
-                        {/*            </option>*/}
-                        {/*        ))}*/}
-                        {/*    </Form.Select>*/}
-                        {/*    <Form.Control.Feedback type="invalid">Please select a property eircode.</Form.Control.Feedback>*/}
-                        {/*</Form.Group>*/}
-
+                        {/* ✅ Property Eircode Dropdown */}
                         <Form.Group className="mb-3">
                             <Form.Label>I'm looking for properties in</Form.Label>
                             <Select
@@ -88,36 +70,20 @@ const SearchForm = () => {
                             </Form.Control.Feedback>
                         </Form.Group>
 
-                        {/* ✅ Commute Eircode Dropdown */}
-                        {/*<Form.Group className="mb-3">*/}
-                        {/*    <Form.Label>with commuter times to</Form.Label>*/}
-                        {/*    <Form.Select*/}
-                        {/*        name="commute"*/}
-                        {/*        value={selectedCommuteEircode}*/}
-                        {/*        onChange={(e) => setSelectedCommuteEircode(e.target.value)}*/}
-                        {/*        required*/}
-                        {/*    >*/}
-                        {/*        <option value="">-- Select an Eircode --</option>*/}
-                        {/*        {eircodeList.map((entry) => (*/}
-                        {/*            <option key={entry.location} value={entry.code}>*/}
-                        {/*                {entry.location} ({entry.code})*/}
-                        {/*            </option>*/}
-                        {/*        ))}*/}
-                        {/*    </Form.Select>*/}
-                        {/*    <Form.Control.Feedback type="invalid">Please select a commute eircode.</Form.Control.Feedback>*/}
-                        {/*</Form.Group>*/}
+                        {/* ✅ Commute Field as Free Text */}
                         <Form.Group className="mb-3">
                             <Form.Label>with commuter times to</Form.Label>
-                            <Select
+                            <Form.Control
+                                type="text"
                                 name="commute"
-                                options={propertyOptions}
-                                placeholder="Please select a location..."
-                                onChange={(option) => setSelectedCommuteEircode(option.value)} // fix setselected
+                                placeholder="Enter a location (e.g. Dublin City Centre)"
+                                value={commuteLocation}
+                                onChange={(e) => setCommuteLocation(e.target.value)}
+                                required
                             />
                             <Form.Control.Feedback type="invalid">
-                                Please select a commute eircode.
+                                Please enter a commute location.
                             </Form.Control.Feedback>
-
                         </Form.Group>
 
                         {showFilters && (
@@ -206,7 +172,7 @@ const SearchForm = () => {
                         >
                             Filters
                         </Button>
-                        <Button variant="primary" type="submit" disabled={!selectedPropertyEircode || !selectedCommuteEircode}>
+                        <Button variant="primary" type="submit" disabled={!selectedPropertyEircode || !commuteLocation}>
                             Submit
                         </Button>
                     </Form>
