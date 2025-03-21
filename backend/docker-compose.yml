@@ -2,8 +2,8 @@ version: "3.8"
 
 services:
   server:
-    # build: . # local image
-    image: ghcr.io/allannastin/gdp4-backend:latest
+    build: . # local image
+    #image: ghcr.io/allannastin/gdp4-backend:latest
     ports:
       - "5300:5300"
     depends_on:
@@ -14,12 +14,13 @@ services:
       DATABASE_USER: root
       DATABASE_PASSWORD: testpassword
       DATABASE_NAME: daftListing
+      SECRET_KEY: "test_secret_key"
     volumes:
       - .:/app
     
   db:
-    # build: ./db # local image
-    image: ghcr.io/allannastin/gdp4-db:latest
+    build: ./db # local image
+    # image: ghcr.io/allannastin/gdp4-db:latest
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: testpassword
