@@ -20,7 +20,7 @@ const LoginPage = () => {
 
         // initialize google Login
         window.google.accounts.id.initialize({
-            client_id: "88616505497-vogc6j8lm62mtpq6upi5r97eq9u4g5uk.apps.googleusercontent.com", // ✅ 你的真实 Client ID
+            client_id: "88616505497-vogc6j8lm62mtpq6upi5r97eq9u4g5uk.apps.googleusercontent.com",
             callback: window.handleCredentialResponse,
         });
 
