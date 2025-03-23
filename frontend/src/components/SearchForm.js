@@ -33,20 +33,37 @@ const SearchForm = () => {
     const submitForm = (e) => {
         e.preventDefault();
         console.log("Submit button clicked!");
+
         const form = e.currentTarget;
 
         if (form.checkValidity() === false) {
             e.stopPropagation();
         } else {
             const formData = new FormData(e.target);
-            const payload = Object.fromEntries(formData);
-            payload.commute = commuteLocation; // Ensure the text input value is added to the payload
-            console.log("Form payload:", payload);
+            let payload = Object.fromEntries(formData);
+
+            // Ensure the commute location (text input) is included
+            payload.commute = commuteLocation;
+            payload.location = selectedPropertyEircode; // Make sure the selected property eircode is included
+
+            // Ensure all numeric values are sent correctly
+            payload["price-min"] = formData.get("price-min") || "";
+            payload["price-max"] = formData.get("price-max") || "";
+            payload["beds"] = formData.get("beds") || "";
+            payload["baths"] = formData.get("baths") || "";
+            payload["size-min"] = formData.get("size-min") || "";
+            payload["size-max"] = formData.get("size-max") || "";
+
+
+            console.log("Form payload being sent:", payload);
+
+            // Send data to backend via navigate
             navigate("/listings", { state: { payload } });
         }
 
         setValidated(true);
     };
+
 
     return (
         <Container className="mt-5">
