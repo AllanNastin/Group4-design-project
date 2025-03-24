@@ -10,7 +10,7 @@ const ListingsParser = () => {
     const navigate = useNavigate();
     const { state } = useLocation();
 
-    const apiUrl = process.env.REACT_APP_API_URL;
+    const apiUrl = "https://dev-gdp4back.sprinty.tech";
 
 
     // Fetch listings data from JSON file   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';

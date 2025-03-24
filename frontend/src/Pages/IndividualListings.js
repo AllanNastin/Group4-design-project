@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, ListGroup } from "react-bootstrap";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Line } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const IndividualListings = () => {
 
@@ -17,7 +21,27 @@ const IndividualListings = () => {
       navigate("/search");
     }
     else {
-      setListing(state.listing);
+      const listingData = state.listing;
+
+      // Inject mock data if price_history or price_dates are not available
+      if (!listingData.price_history || !listingData.price_dates) {
+        const mockPriceHistory = [listingData.price]; // Today's price
+        const mockPriceDates = [new Date().toISOString().split('T')[0]]; // Today's date
+        const basePrice = listingData.price;
+        const currentDate = new Date();
+
+        for (let i = 1; i < 10; i++) {
+          mockPriceHistory.push(basePrice + (Math.random() * 2000 - 1000)); // Minor variations
+          const date = new Date(currentDate);
+          date.setMonth(currentDate.getMonth() - i);
+          mockPriceDates.push(date.toISOString().split('T')[0]);
+        }
+
+        listingData.price_history = mockPriceHistory.reverse();
+        listingData.price_dates = mockPriceDates.reverse();
+      }
+
+      setListing(listingData);
       setLoading(false);
     }
   }, [state, navigate]);
@@ -25,6 +49,18 @@ const IndividualListings = () => {
   if (loading) return <p className="text-center mt-5">Loading listing details...</p>;
   if (error) return <p className="text-danger text-center mt-5">{error}</p>;
   if (!listing) return <p className="text-center mt-5">No listing found.</p>;
+
+  const data = {
+    labels: listing.price_dates,
+    datasets: [
+      {
+        label: 'Price History',
+        data: listing.price_history,
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+      },
+    ],
+  };
 
   return (
     <Container className="mt-5">
@@ -64,6 +100,10 @@ const IndividualListings = () => {
                 <Button variant="secondary" onClick={() => navigate("/listings", { state: { listingsData: state.listingsData } })}>Back to Listings</Button>
                 <Button variant="success">Contact Landlord</Button>
               </div>
+
+              <hr />
+              <h5 className="fw-bold text-center">Price History</h5>
+              <Line data={data} />
             </Card.Body>
           </Card>
         </Col>
