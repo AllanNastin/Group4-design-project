@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, Button, ListGroup } from "react-bootstrap";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { FaHeart, FaRegHeart } from "react-icons/fa"; // Import heart icons
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -12,6 +13,7 @@ const IndividualListings = () => {
   const [listing, setListing] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isSaved, setIsSaved] = useState(false); // State to track if the listing is saved
 
   const { state } = useLocation();
 
@@ -43,8 +45,27 @@ const IndividualListings = () => {
 
       setListing(listingData);
       setLoading(false);
+
+      // Check if the listing is already saved
+      const savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
+      setIsSaved(savedListings.includes(listingData.id));
     }
   }, [state, navigate]);
+
+  const handleSaveListing = () => {
+    const savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
+    if (isSaved) {
+      // Remove listing from saved listings
+      const updatedListings = savedListings.filter(id => id !== listing.id);
+      sessionStorage.setItem("savedListings", JSON.stringify(updatedListings));
+      setIsSaved(false);
+    } else {
+      // Add listing to saved listings
+      savedListings.push(listing.id);
+      sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
+      setIsSaved(true);
+    }
+  };
 
   if (loading) return <p className="text-center mt-5">Loading listing details...</p>;
   if (error) return <p className="text-danger text-center mt-5">{error}</p>;
@@ -71,7 +92,12 @@ const IndividualListings = () => {
               <Card.Img variant="top" src={listing.images[0]} alt={listing.address} />
             )}
             <Card.Body>
-              <Card.Title className="text-center fs-3 fw-bold">{listing.address}</Card.Title>
+              <div className="d-flex justify-content-between align-items-center">
+                <Card.Title className="text-center fs-3 fw-bold">{listing.address}</Card.Title>
+                <Button variant="link" className="p-0" onClick={handleSaveListing}>
+                  {isSaved ? <FaHeart color="red" size={24} /> : <FaRegHeart color="gray" size={24} />}
+                </Button>
+              </div>
               <h5 className="text-muted text-center">{listing.eircode}</h5>
               <hr />
 
