@@ -114,6 +114,7 @@ const SearchForm = () => {
                                 Please select a commute eircode.
                             </Form.Control.Feedback>
                         </Form.Group>
+
                         {showFilters && (
                             <>
                                 <Form.Group className="mb-3">
