@@ -62,24 +62,29 @@ const IndividualListings = () => {
     // Re-check sessionStorage when the component mounts
     if (listing) {
       const savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
-      setIsSaved(savedListings.includes(parseInt(id)));
+      const isListingSaved = savedListings.some(savedItem => savedItem.id === parseInt(id)); // Check if the listing is saved
+      setIsSaved(isListingSaved);
     }
   }, [listing, id]);
 
   const handleSaveListing = () => {
     let savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
-    savedListings = savedListings.filter(savedId => savedId !== null && savedId !== undefined); // Remove null and undefined values
+    savedListings = savedListings.filter(savedItem => savedItem !== null && savedItem !== undefined); // Remove null and undefined values
 
     if (isSaved) {
       // Remove listing from saved listings
-      const updatedListings = savedListings.filter(savedItem => savedItem.id !== parseInt(id)); // Use id from params
+      const updatedListings = savedListings.filter(savedItem => savedItem.id !== parseInt(id)); // Match by id
       sessionStorage.setItem("savedListings", JSON.stringify(updatedListings));
       setIsSaved(false);
     } else {
-      // Add listing to saved listings
-      savedListings.push({id: parseInt(id), commute: commute}); // Use id from params
-      sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
-      setIsSaved(true);
+      // Check if the listing already exists
+      const alreadySaved = savedListings.some(savedItem => savedItem.id === parseInt(id));
+      if (!alreadySaved) {
+        // Add listing to saved listings
+        savedListings.push({ id: parseInt(id), commute }); // Save both id and commute
+        sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
+        setIsSaved(true);
+      }
     }
   };
 
