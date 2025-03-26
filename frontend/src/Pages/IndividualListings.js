@@ -8,7 +8,7 @@ import { FaHeart, FaRegHeart } from "react-icons/fa"; // Import heart icons
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const IndividualListings = () => {
-  const { id } = useParams(); // Extract id from URL
+  const { id, commute } = useParams(); // Extract id from URL
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [error, setError] = useState(null);
@@ -56,7 +56,7 @@ const IndividualListings = () => {
       setError(`Listing data is not available.`);
       setLoading(false);
     }
-  }, [id, state, navigate]);
+  }, [id, commute, state, navigate]);
 
   useEffect(() => {
     // Re-check sessionStorage when the component mounts
@@ -72,12 +72,12 @@ const IndividualListings = () => {
 
     if (isSaved) {
       // Remove listing from saved listings
-      const updatedListings = savedListings.filter(savedId => savedId !== parseInt(id)); // Use id from params
+      const updatedListings = savedListings.filter(savedItem => savedItem.id !== parseInt(id)); // Use id from params
       sessionStorage.setItem("savedListings", JSON.stringify(updatedListings));
       setIsSaved(false);
     } else {
       // Add listing to saved listings
-      savedListings.push(parseInt(id)); // Use id from params
+      savedListings.push({id: parseInt(id), commute: commute}); // Use id from params
       sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
       setIsSaved(true);
     }
