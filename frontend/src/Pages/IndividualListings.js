@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, ListGroup } from "react-bootstrap";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom"; // Import useParams
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { FaHeart, FaRegHeart } from "react-icons/fa"; // Import heart icons
@@ -8,7 +8,7 @@ import { FaHeart, FaRegHeart } from "react-icons/fa"; // Import heart icons
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const IndividualListings = () => {
-
+  const { id } = useParams(); // Extract id from URL
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [error, setError] = useState(null);
@@ -18,11 +18,12 @@ const IndividualListings = () => {
   const { state } = useLocation();
 
   useEffect(() => {
-    if(state === null) {
-      setError(`(State) Error loading listings`);
-      navigate("/search");
+    if (!id) {
+      setError(`Listing ID is missing in the URL.`);
+      return;
     }
-    else {
+
+    if (state && state.listing) {
       const listingData = state.listing;
 
       // Inject mock data if price_history or price_dates are not available
@@ -47,21 +48,36 @@ const IndividualListings = () => {
       setLoading(false);
 
       // Check if the listing is already saved
-      const savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
-      setIsSaved(savedListings.includes(listingData.id));
+      let savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
+      savedListings = savedListings.filter(id => id !== null); // Remove null values
+      sessionStorage.setItem("savedListings", JSON.stringify(savedListings)); // Update sessionStorage
+      setIsSaved(savedListings.includes(parseInt(id))); // Compare with the extracted id
+    } else {
+      setError(`Listing data is not available.`);
+      setLoading(false);
     }
-  }, [state, navigate]);
+  }, [id, state, navigate]);
+
+  useEffect(() => {
+    // Re-check sessionStorage when the component mounts
+    if (listing) {
+      const savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
+      setIsSaved(savedListings.includes(parseInt(id)));
+    }
+  }, [listing, id]);
 
   const handleSaveListing = () => {
-    const savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
+    let savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
+    savedListings = savedListings.filter(savedId => savedId !== null && savedId !== undefined); // Remove null and undefined values
+
     if (isSaved) {
       // Remove listing from saved listings
-      const updatedListings = savedListings.filter(id => id !== listing.id);
+      const updatedListings = savedListings.filter(savedId => savedId !== parseInt(id)); // Use id from params
       sessionStorage.setItem("savedListings", JSON.stringify(updatedListings));
       setIsSaved(false);
     } else {
       // Add listing to saved listings
-      savedListings.push(listing.id);
+      savedListings.push(parseInt(id)); // Use id from params
       sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
       setIsSaved(true);
     }
