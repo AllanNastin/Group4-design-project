@@ -9,73 +9,50 @@ const ListingsParser = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { state } = useLocation();
-    // back button default url variable
-    const backUrl = "/search";
-
     const apiUrl = process.env.REACT_APP_API_URL;
 
-
-    // Fetch listings data from JSON file   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
     useEffect(() => {
-        /*
-        fetch("/Sample.json")
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then((jsonData) => {
-                setListingsData(jsonData);
-            })
-            .catch((err) => {
-                setError(`Error loading JSON: ${err.message}`);
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-        */
-           // Make get request to backend
         const getListings = async () => {
             try {
-                if(state === null) {
+                if (state === null) {
                     setError(`(State) Error loading listings`);
                     navigate("/search");
                 }
-                if(state.listingsData) {
+                if (state.listingsData) {
                     setListingsData(state.listingsData);
-                }
-                else {
+                } else {
                     const payload = state.payload;
                     const response = await axios.get(`${apiUrl}/getListings`, {
-                        // add request params
                         params: {
-                            type : payload.type,
-                            location : payload.location,
-                            commute : payload.commute
-                        }
+                            type: payload.type,
+                            location: payload.location,
+                            commute: payload.commute,
+                        },
                     });
                     const status = response.status;
-                    // if OK response
-                    if(status === 200) {
+                    if (status === 200) {
                         setListingsData(response.data);
-                    }
-                    else {
-                        setError(`(${status}) Error loading listings`)
+                    } else {
+                        setError(`(${status}) Error loading listings`);
                     }
                 }
             } catch (error) {
                 setError(`Error contacting server`);
             }
             setLoading(false);
-
         };
         getListings();
     }, [state, apiUrl, navigate]);
 
     const handleListingClick = (listing) => {
         const payload = state.payload;
-        navigate("/listing/" + listing.listing_id + "/" + payload.commute,  { state: { listing: listing, commute: payload.commute, listingsData: listingsData } });
+        navigate(`/listing/${listing.listing_id}/${payload.commute}`, {
+            state: { listing: listing, commute: payload.commute, listingsData: listingsData },
+        });
+    };
+
+    const handleBackClick = () => {
+        navigate("/search");
     };
 
     if (loading) return <p className="text-center mt-5">Loading property listings...</p>;
@@ -83,8 +60,7 @@ const ListingsParser = () => {
     if (!listingsData || !listingsData.listings || listingsData.listings.length === 0) {
         return (
             <Container className="mt-5">
-                {/* Back Button */}
-                <Button variant="secondary" className="mb-4" onClick={() => navigate(backUrl)}>
+                <Button variant="secondary" className="mb-4" onClick={handleBackClick}>
                     ← Back
                 </Button>
                 <h1 className="text-center mb-4">Property Listings</h1>
@@ -93,13 +69,12 @@ const ListingsParser = () => {
             </Container>
         );
     }
+
     return (
         <Container className="mt-5">
-            {/* Back Button */}
-            <Button variant="secondary" className="mb-4" onClick={() => navigate(backUrl)}>
+            <Button variant="secondary" className="mb-4" onClick={handleBackClick}>
                 ← Back
             </Button>
-
             <h1 className="text-center mb-4">Property Listings</h1>
             <h5 className="text-muted text-center">Total Results: {listingsData.total_results}</h5>
             <Row className="mt-4">
