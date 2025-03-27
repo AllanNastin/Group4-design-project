@@ -1,40 +1,39 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, ListGroup } from "react-bootstrap";
-import { useNavigate, useLocation, useParams } from "react-router-dom"; // Import useParams
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
-import { FaHeart, FaRegHeart } from "react-icons/fa"; // Import heart icons
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const IndividualListings = () => {
-  const { id, commute } = useParams(); // Extract id from URL
+  const { id, commute } = useParams();
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isSaved, setIsSaved] = useState(false); // State to track if the listing is saved
-
+  const [isSaved, setIsSaved] = useState(false);
   const { state } = useLocation();
 
   useEffect(() => {
     if (!id) {
       setError(`Listing ID is missing in the URL.`);
+      setLoading(false);
       return;
     }
 
     if (state && state.listing) {
       const listingData = state.listing;
 
-      // Inject mock data if price_history or price_dates are not available
       if (!listingData.price_history || !listingData.price_dates) {
-        const mockPriceHistory = [listingData.price]; // Today's price
-        const mockPriceDates = [new Date().toISOString().split('T')[0]]; // Today's date
+        const mockPriceHistory = [listingData.price];
+        const mockPriceDates = [new Date().toISOString().split('T')[0]];
         const basePrice = listingData.price;
         const currentDate = new Date();
 
         for (let i = 1; i < 10; i++) {
-          mockPriceHistory.push(basePrice + (Math.random() * 2000 - 1000)); // Minor variations
+          mockPriceHistory.push(basePrice + (Math.random() * 2000 - 1000));
           const date = new Date(currentDate);
           date.setMonth(currentDate.getMonth() - i);
           mockPriceDates.push(date.toISOString().split('T')[0]);
@@ -47,11 +46,10 @@ const IndividualListings = () => {
       setListing(listingData);
       setLoading(false);
 
-      // Check if the listing is already saved
       let savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
-      savedListings = savedListings.filter(id => id !== null); // Remove null values
-      sessionStorage.setItem("savedListings", JSON.stringify(savedListings)); // Update sessionStorage
-      setIsSaved(savedListings.includes(parseInt(id))); // Compare with the extracted id
+      savedListings = savedListings.filter(savedItem => savedItem !== null && savedItem !== undefined);
+      sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
+      setIsSaved(savedListings.some(savedItem => savedItem.listing_id === parseInt(id)));
     } else {
       setError(`Listing data is not available.`);
       setLoading(false);
@@ -59,31 +57,47 @@ const IndividualListings = () => {
   }, [id, commute, state, navigate]);
 
   useEffect(() => {
-    // Re-check sessionStorage when the component mounts
     if (listing) {
       const savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
-      const isListingSaved = savedListings.some(savedItem => savedItem.id === parseInt(id)); // Check if the listing is saved
+      const isListingSaved = savedListings.some(savedItem => savedItem.listing_id === parseInt(id));
       setIsSaved(isListingSaved);
     }
   }, [listing, id]);
 
+  const saveListingData = (listingToSave) => {
+    return {
+      listing_id: listingToSave.listing_id,
+      address: listingToSave.address,
+      eircode: listingToSave.eircode,
+      price: listingToSave.price,
+      bedrooms: listingToSave.bedrooms,
+      bathrooms: listingToSave.bathrooms,
+      size: listingToSave.size,
+      commute_times: listingToSave.commute_times,
+      description: listingToSave.description,
+      images: listingToSave.images,
+      price_dates: listingToSave.price_dates,
+      price_history: listingToSave.price_history,
+      commute: commute, // Include commute from URL
+    };
+  };
+
   const handleSaveListing = () => {
     let savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
-    savedListings = savedListings.filter(savedItem => savedItem !== null && savedItem !== undefined); // Remove null and undefined values
+    savedListings = savedListings.filter(savedItem => savedItem !== null && savedItem !== undefined);
 
     if (isSaved) {
-      // Remove listing from saved listings
-      const updatedListings = savedListings.filter(savedItem => savedItem.id !== parseInt(id)); // Match by id
+      const updatedListings = savedListings.filter(savedItem => savedItem.listing_id !== parseInt(id));
       sessionStorage.setItem("savedListings", JSON.stringify(updatedListings));
       setIsSaved(false);
     } else {
-      // Check if the listing already exists
-      const alreadySaved = savedListings.some(savedItem => savedItem.id === parseInt(id));
+      const alreadySaved = savedListings.some(savedItem => savedItem.listing_id === parseInt(id));
       if (!alreadySaved) {
-        // Add listing to saved listings
-        savedListings.push({ id: parseInt(id), commute }); // Save both id and commute
+        const listingDataToSave = saveListingData(listing); // Save data with the function
+        savedListings.push(listingDataToSave);
         sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
         setIsSaved(true);
+        console.log("Listings saved:", savedListings);
       }
     }
   };
