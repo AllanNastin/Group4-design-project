@@ -163,7 +163,7 @@ const IndividualListings = () => {
 
               <div className="d-flex justify-content-between">
                 <Button variant="secondary" onClick={handleBackClick}>
-                  Back
+                  ← Back
                 </Button>
                 <Button variant="success">Contact Landlord</Button>
               </div>
