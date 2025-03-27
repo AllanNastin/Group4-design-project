@@ -118,6 +118,10 @@ const IndividualListings = () => {
     ],
   };
 
+  const handleBackClick = () => {
+    navigate(-1); // Navigate back to the previous page for purpose of saved listings
+  };
+
   return (
     <Container className="mt-5">
       <Row className="justify-content-center">
@@ -158,7 +162,9 @@ const IndividualListings = () => {
               <p className="lead">{listing.description || "No description available."}</p>
 
               <div className="d-flex justify-content-between">
-                <Button variant="secondary" onClick={() => navigate("/listings", { state: { listingsData: state.listingsData } })}>Back to Listings</Button>
+                <Button variant="secondary" onClick={handleBackClick}>
+                  Back
+                </Button>
                 <Button variant="success">Contact Landlord</Button>
               </div>
 
