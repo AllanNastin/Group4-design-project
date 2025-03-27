@@ -9,6 +9,8 @@ const ListingsParser = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { state } = useLocation();
+    // back button default url variable
+    const backUrl = "/search";
 
     const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -82,7 +84,7 @@ const ListingsParser = () => {
         return (
             <Container className="mt-5">
                 {/* Back Button */}
-                <Button variant="secondary" className="mb-4" onClick={() => navigate(-1)}>
+                <Button variant="secondary" className="mb-4" onClick={() => navigate(backUrl)}>
                     ← Back
                 </Button>
                 <h1 className="text-center mb-4">Property Listings</h1>
@@ -94,7 +96,7 @@ const ListingsParser = () => {
     return (
         <Container className="mt-5">
             {/* Back Button */}
-            <Button variant="secondary" className="mb-4" onClick={() => navigate(-1)}>
+            <Button variant="secondary" className="mb-4" onClick={() => navigate(backUrl)}>
                 ← Back
             </Button>
 
