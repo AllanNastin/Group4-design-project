@@ -75,14 +75,16 @@ def getListings():
                     SELECT pd.*, pph.Price
                     FROM PropertyDetails pd
                     JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
-                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND pd.ForSale = %s AND pd.Eircode LIKE %s;
+                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND pd.ForSale = %s AND pd.Eircode LIKE %s
+                    LIMIT 50;
                 """, (ForSaleValue,f"{location}%"))
             else:
                 cursor.execute("""
                     SELECT pd.*, pph.Price
                     FROM PropertyDetails pd
                     JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
-                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND ForSale = %s;
+                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND ForSale = %s
+                    LIMIT 50;
                 """, (ForSaleValue,))
             results = cursor.fetchall()
             response["total_results"] = len(results)
