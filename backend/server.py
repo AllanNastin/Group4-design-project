@@ -13,7 +13,6 @@ import datetime
 
 load_dotenv()
 google_api_key = os.getenv("GOOGLE_API_KEY")
-google_api_key = "AIzaSyBQhp3IgWaB7PkVbGUMzNeqXoYM47UlMoI"
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "https://gdp4.sprinty.tech", "https://dev-gdp4.sprinty.tech"])
 
