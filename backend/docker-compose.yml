@@ -2,8 +2,10 @@ version: "3.8"
 
 services:
   server:
-    # build: . # local image
+
+    #build: . # local image
     image: ghcr.io/allannastin/gdp4-backend:dev
+
     ports:
       - "5300:5300"
     depends_on:
@@ -16,12 +18,15 @@ services:
       DATABASE_USER: root
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_NAME: daftListing
+      SECRET_KEY: ${SECRET_KEY}
     volumes:
       - .:/app
     
   db:
-    # build: ./db # local image
+
+    #build: ./db # local image
     image: ghcr.io/allannastin/gdp4-db:dev
+
     restart: always
     env_file:
       - .env
