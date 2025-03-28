@@ -105,6 +105,12 @@ def getListings():
         listing_type = request.args.get('type')
         location = request.args.get('location')
         commute = request.args.get('commute')
+        priceMin = request.args.get('price-min') if request.args.get('price-min') != "Min" else None
+        priceMax = request.args.get('price-max') if request.args.get('price-max') != "Max" else None
+        beds = request.args.get('beds') if request.args.get('beds') != "Any" else None
+        baths = request.args.get('baths') if request.args.get('baths') != "Any" else None
+        sizeMin = request.args.get('size-min') if request.args.get('size-min') != "Min" else None
+        sizeMax = request.args.get('size-max') if request.args.get('size-max') != "Max" else None
         print(listing_type, location, commute, flush =True)
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
@@ -112,8 +118,7 @@ def getListings():
 
     if listing_type == "rent":
         ForSaleValue = 0
-        location = ""
-        # return all
+    
     try:
         response = {
             "total_results": 0,
@@ -126,25 +131,44 @@ def getListings():
             password=os.getenv('DATABASE_PASSWORD'),
             database=os.getenv('DATABASE_NAME')
         )
-        print(len(location), flush=True)
         with conn.cursor() as cursor:
-            if len(location) == 3:
-                cursor.execute("""
-                    SELECT pd.*, pph.Price
-                    FROM PropertyDetails pd
-                    JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
-                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND pd.ForSale = %s AND pd.Eircode LIKE %s;
-                """, (ForSaleValue,f"{location}%"))
-            else:
-                cursor.execute("""
-                    SELECT pd.*, pph.Price
-                    FROM PropertyDetails pd
-                    JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
-                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND ForSale = %s;
-                """, (ForSaleValue,))
+            sql_query = """
+                SELECT pd.*, pph.Price
+                FROM PropertyDetails pd
+                JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
+                WHERE pph.Timestamp = (
+                    SELECT MAX(Timestamp) FROM PropertyPriceHistory WHERE Timestamp >= NOW() - INTERVAL 1 DAY AND PropertyId = pd.Id 
+                )
+                AND pd.ForSale = %s
+            """
+            params = [ForSaleValue]
+            if location is not None:
+                if len(location) == 3:
+                    sql_query += " AND pd.Eircode LIKE %s"
+                    params.append(f"{location}%")
+            if priceMin != None:
+                sql_query += " AND pph.Price >= %s"
+                params.append(priceMin)
+            if priceMax != None:
+                sql_query += " AND pph.Price <= %s"
+                params.append(priceMax)
+            if beds != None:
+                sql_query += " AND pd.Bed >= %s"
+                params.append(beds)
+            if baths != None:
+                sql_query += " AND pd.Bath >= %s"
+                params.append(baths)
+            if sizeMin != None:
+                sql_query += " AND pd.Size >= %s"
+                params.append(sizeMin)
+            if sizeMax != None:
+                sql_query += " AND pd.Size <= %s"
+                params.append(sizeMax)
+            cursor.execute(sql_query, tuple(params))
             results = cursor.fetchall()
             response["total_results"] = len(results)
             print(f"Total results: {len(results)}", flush=True)  # Debug print
+            # fetch pics from the filtered results
             for listing in results:
                 cursor.execute("""
                     SELECT Link FROM PropertyPictures WHERE PropertyId = %s;

@@ -2,7 +2,6 @@ version: "3.8"
 
 services:
   server:
-
     #build: . # local image
     image: ghcr.io/allannastin/gdp4-backend:dev
 
@@ -23,7 +22,6 @@ services:
       - .:/app
     
   db:
-
     #build: ./db # local image
     image: ghcr.io/allannastin/gdp4-db:dev
 
