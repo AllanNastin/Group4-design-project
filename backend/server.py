@@ -98,6 +98,98 @@ def maps():
     dist, drive, walk = get_distance_and_times(origin, dest, google_api_key)
     return jsonify({"distance": dist, "drive_time": drive, "walk_time": walk})
 
+@app.route("/getListing", methods=['GET'])
+def getListing():
+    load_dotenv()
+    try:
+        listing_type = request.args.get('type')
+        location = request.args.get('location')
+        listing_id = request.args.get('listing_id')
+        # commute = request.args.get('commute')
+        # print(listing_type, location, commute, flush =True)
+    except KeyError:
+        return jsonify({"error": "Missing required parameters"}), 400
+    ForSaleValue = 1
+
+    if listing_type == "rent":
+        ForSaleValue = 0
+        location = ""
+    try:
+        conn = mysql.connector.connect(
+            host=os.getenv('DATABASE_HOST'),
+            port=os.getenv('DATABASE_PORT'),
+            user=os.getenv('DATABASE_USER'),
+            password=os.getenv('DATABASE_PASSWORD'),
+            database=os.getenv('DATABASE_NAME')
+        )
+        # print(len(location), flush=True)
+        with conn.cursor() as cursor:
+            if len(location) == 3:
+                cursor.execute("""
+                    SELECT pd.*, pph.Price
+                    FROM PropertyDetails pd
+                    JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
+                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND pd.ForSale = %s AND pd.Eircode LIKE %s;
+                """, (ForSaleValue,f"{location}%"))
+            else:
+                cursor.execute("""
+                    SELECT pd.*, pph.Price
+                    FROM PropertyDetails pd
+                    JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
+                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND ForSale = %s;
+                """, (ForSaleValue,))
+            results = cursor.fetchall()
+            # return jsonify(results[0])
+            # return jsonify(results)
+            for listing in results:
+                if (int(listing[0]) == int(listing_id)):
+                    cursor.execute("""
+                        SELECT Link FROM PropertyPictures WHERE PropertyId = %s;
+                    """, (listing[0],))
+                    images = cursor.fetchall()
+                    # print(f"Listing: {listing}", flush=True)  # Debug print
+                    distance, car_time, walk_time = 0,0,0
+
+                    cursor.execute("""
+                        SELECT Price
+                        FROM daftListing.PropertyPriceHistory 
+                        WHERE PropertyId = %s;
+                    """, (listing[0],))
+                    price_history = cursor.fetchall()
+
+                    cursor.execute("""
+                        SELECT Timestamp
+                        FROM daftListing.PropertyPriceHistory 
+                        WHERE PropertyId = %s;
+                    """, (listing[0],))
+                    price_dates = cursor.fetchall()
+
+                    jsonEntry = {
+                        "listing_id": listing[0],
+                        "address": listing[1],
+                        "eircode": listing[2],
+                        "bedrooms": listing[3],
+                        "bathrooms": listing[4],
+                        "size": listing[5],
+                        "current_price": listing[8],
+                        "images": [sub[0] for sub in images],
+                        "distance": distance,
+                        "commute_times": {
+                            "car": str(car_time),
+                            "walk": str(walk_time)
+                        },
+                    "price_history": price_history,
+                        "price_dates": price_dates,
+                    }
+                    conn.close()
+                    return(jsonify(jsonEntry))
+            conn.close()
+            return(jsonify({}))
+
+    except mysql.connector.Error as e:
+        print(f"Error from mysql connector: {e}")
+        return jsonify({"error": f"{e}"}), 500
+
 @app.route("/getListings", methods=['GET'])
 def getListings():
     load_dotenv()
@@ -176,21 +268,37 @@ def getListings():
             cursor.execute(sql_query, tuple(params))
             results = cursor.fetchall()
             response["total_results"] = len(results)
+
             print(f"Total results: {len(results)}", flush=True)  # Debug print
             # fetch pics from the filtered results
+
             for listing in results:
                 cursor.execute("""
                     SELECT Link FROM PropertyPictures WHERE PropertyId = %s;
                 """, (listing[0],))
                 images = cursor.fetchall()
-                print(f"Listing: {listing}", flush=True)  # Debug print
+                # print(f"Listing: {listing}", flush=True)  # Debug print
                 distance, car_time, walk_time = 0,0,0
                 if ForSaleValue:
                     listing_location = eircode_map.get(location.upper(), location) # Translate Eircode to location name
                     if listing_location == location.upper():
                         listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
-                    print(f"Listing location: {listing_location}", flush=True)  # Debug print
+                    # print(f"Listing location: {listing_location}", flush=True)  # Debug print
                     distance, car_time, walk_time = get_distance_and_times(listing_location, listing[1], google_api_key)
+
+                cursor.execute("""
+                    SELECT Price
+                    FROM daftListing.PropertyPriceHistory 
+                    WHERE PropertyId = %s;
+                """, (listing[0],))
+                price_history = cursor.fetchall()
+
+                cursor.execute("""
+                    SELECT Timestamp
+                    FROM daftListing.PropertyPriceHistory 
+                    WHERE PropertyId = %s;
+                """, (listing[0],))
+                price_dates = cursor.fetchall()
 
                 jsonEntry = {
                     "listing_id": listing[0],
@@ -205,16 +313,18 @@ def getListings():
                     "commute_times": {
                         "car": str(car_time),
                         "walk": str(walk_time)
-                    }
+                    },
+                "price_history": price_history,
+                    "price_dates": price_dates,
                 }
                 response["listings"].append(jsonEntry)
             
         conn.close()
         return jsonify(response)
-
     except mysql.connector.Error as e:
         print(f"Error from mysql connector: {e}")
         return jsonify({"error": f"{e}"}), 500
+
 
 def initScrap():
     load_dotenv()
@@ -269,6 +379,5 @@ if __name__ == "__main__":
     if initScrap():
         print(f"init scrap @{datetime.datetime.now()}", flush=True)
         scrap_daft.scrap()
-    
+ 
     app.run(host="0.0.0.0", port=5300)
-
