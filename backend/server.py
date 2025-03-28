@@ -153,14 +153,14 @@ def getListing():
                     cursor.execute("""
                         SELECT Price
                         FROM daftListing.PropertyPriceHistory 
-                        WHERE Id = %s;
+                        WHERE PropertyId = %s;
                     """, (listing[0],))
                     price_history = cursor.fetchall()
 
                     cursor.execute("""
                         SELECT Timestamp
                         FROM daftListing.PropertyPriceHistory 
-                        WHERE Id = %s;
+                        WHERE PropertyId = %s;
                     """, (listing[0],))
                     price_dates = cursor.fetchall()
 
@@ -289,14 +289,14 @@ def getListings():
                 cursor.execute("""
                     SELECT Price
                     FROM daftListing.PropertyPriceHistory 
-                    WHERE Id = %s;
+                    WHERE PropertyId = %s;
                 """, (listing[0],))
                 price_history = cursor.fetchall()
 
                 cursor.execute("""
                     SELECT Timestamp
                     FROM daftListing.PropertyPriceHistory 
-                    WHERE Id = %s;
+                    WHERE PropertyId = %s;
                 """, (listing[0],))
                 price_dates = cursor.fetchall()
 
