@@ -91,12 +91,6 @@ def getListing():
                     images = cursor.fetchall()
                     # print(f"Listing: {listing}", flush=True)  # Debug print
                     distance, car_time, walk_time = 0,0,0
-                    if ForSaleValue:
-                        listing_location = eircode_map.get(location.upper(), location) # Translate Eircode to location name
-                        if listing_location == location.upper():
-                            listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
-                        # print(f"Listing location: {listing_location}", flush=True)  # Debug print
-                        distance, car_time, walk_time = get_distance_and_times(listing_location, listing[1], google_api_key)
 
                     cursor.execute("""
                         SELECT Price
@@ -131,6 +125,8 @@ def getListing():
                     }
                     conn.close()
                     return(jsonify(jsonEntry))
+            conn.close()
+            return(jsonify({}))
 
     except mysql.connector.Error as e:
         print(f"Error from mysql connector: {e}")
@@ -290,6 +286,5 @@ if __name__ == "__main__":
     if initScrap():
         print(f"init scrap @{datetime.datetime.now()}", flush=True)
         scrap_daft.scrap()
-    
+ 
     app.run(host="0.0.0.0", port=5300)
-
