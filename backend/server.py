@@ -10,11 +10,18 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 import time
 import datetime
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import create_access_token, jwt_required, JWTManager
 
 load_dotenv()
 google_api_key = os.getenv("GOOGLE_API_KEY")
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "https://gdp4.sprinty.tech", "https://dev-gdp4.sprinty.tech"])
+
+# access token
+bcrypt = Bcrypt(app)
+app.config["JWT_SECRET_KEY"] = os.getenv("SECRET_KEY")
+jwt = JWTManager(app)
 
 # Load Eircode.json
 with open('Eircodes.json') as f:
@@ -28,6 +35,57 @@ def scheduled_scrap():
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(scheduled_scrap, 'cron', hour=17, minute=30)
+
+# register user
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.json
+    hashed_password = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
+    
+    try:
+        conn = mysql.connector.connect(
+            host=os.getenv('DATABASE_HOST'),
+            port=os.getenv('DATABASE_PORT'),
+            user=os.getenv('DATABASE_USER'),
+            password=os.getenv('DATABASE_PASSWORD'),
+            database=os.getenv('DATABASE_NAME')
+        )
+        with conn.cursor() as cursor:
+            try:
+                cursor.execute("INSERT INTO Users (username, email, password_hash) VALUES (%s, %s, %s)", 
+                            (data["username"], data["email"], hashed_password))
+                conn.commit()
+                return jsonify({"message": "User registered successfully"}), 201
+            except:
+                print("Error: ", cursor.error)
+                return jsonify({"error": "User already exists"}), 400
+    except:
+        return jsonify({"error": "Connect DB error"}), 501
+
+# Login User
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+
+    try:
+        conn = mysql.connector.connect(
+            host=os.getenv('DATABASE_HOST'),
+            port=os.getenv('DATABASE_PORT'),
+            user=os.getenv('DATABASE_USER'),
+            password=os.getenv('DATABASE_PASSWORD'),
+            database=os.getenv('DATABASE_NAME')
+        )
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id, password_hash FROM Users WHERE email = %s", (data["email"],))
+            user = cursor.fetchone()
+            
+            if user and bcrypt.check_password_hash(user[1], data["password"]):
+                access_token = create_access_token(identity=user[0])
+                return jsonify({"token": access_token})
+            
+            return jsonify({"error": "Invalid credentials"}), 401
+    except:
+        return jsonify({"error": "Connect DB error"}), 501
 
 @app.route("/")
 def main():
