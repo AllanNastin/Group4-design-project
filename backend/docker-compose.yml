@@ -18,6 +18,7 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_NAME: daftListing
       SECRET_KEY: ${SECRET_KEY}
+
     volumes:
       - .:/app
     

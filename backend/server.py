@@ -112,6 +112,15 @@ def getListings():
         sizeMin = request.args.get('size-min') if request.args.get('size-min') != "Min" else None
         sizeMax = request.args.get('size-max') if request.args.get('size-max') != "Max" else None
         print(listing_type, location, commute, flush =True)
+        print("Type:", listing_type)
+        print("Location:", location)
+        print("Commute:", commute)
+        print("Price Min:", request.args.get('price-min'))
+        print("Price Max:", request.args.get('price-max'))
+        print("Beds:", request.args.get('beds'))
+        print("Baths:", request.args.get('baths'))
+        print("Size Min:", request.args.get('size-min'))
+        print("Size Max:", request.args.get('size-max'))
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
     ForSaleValue = 1

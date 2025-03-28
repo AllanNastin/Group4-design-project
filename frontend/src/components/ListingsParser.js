@@ -23,12 +23,20 @@ const ListingsParser = () => {
                 } else {
                     const payload = state.payload;
                     const response = await axios.get(`${apiUrl}/getListings`, {
-                        params: {
-                            type: payload.type,
-                            location: payload.location,
-                            commute: payload.commute,
-                        },
+                      params: {
+                        type: payload.type,
+                        location: payload.location,
+                        commute: payload.commute,
+                        // ✅ Add new filter parameters
+                        "price-min": payload["price-min"],
+                        "price-max": payload["price-max"],
+                        beds: payload.beds,
+                        baths: payload.baths,
+                        "size-min": payload["size-min"],
+                        "size-max": payload["size-max"]
+                      }
                     });
+
                     const status = response.status;
                     if (status === 200) {
                         setListingsData(response.data);
