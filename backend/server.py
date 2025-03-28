@@ -40,6 +40,25 @@ def maps():
     dist, drive, walk = get_distance_and_times(origin, dest, google_api_key)
     return jsonify({"distance": dist, "drive_time": drive, "walk_time": walk})
 
+@app.route("/getListing", methods=['GET'])
+def getListing():
+    listing_id = request.args.get('listing_id')
+
+    conn = mysql.connector.connect(
+        host=os.getenv('DATABASE_HOST'),
+        port=os.getenv('DATABASE_PORT'),
+        user=os.getenv('DATABASE_USER'),
+        password=os.getenv('DATABASE_PASSWORD'),
+        database=os.getenv('DATABASE_NAME')
+    )
+    with conn.cursor() as cursor:
+        cursor.execute("""
+            SELECT * FROM daftListing.PropertyDetails WHERE ID =  %s;
+        """, (listing_id, ))
+        results = cursor.fetchall()
+        print(f"Total results: {len(results)}", flush=True)  # Debug print
+    return jsonify({"listing": results})
+
 @app.route("/getListings", methods=['GET'])
 def getListings():
     load_dotenv()
