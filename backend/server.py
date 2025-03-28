@@ -120,6 +120,20 @@ def getListings():
                     print(f"Listing location: {listing_location}", flush=True)  # Debug print
                     distance, car_time, walk_time = get_distance_and_times(listing_location, listing[1], google_api_key)
 
+                cursor.execute("""
+                    SELECT Price
+                    FROM daftListing.PropertyPriceHistory 
+                    WHERE Id = %s;
+                """, (listing[0],))
+                price_history = cursor.fetchall()
+
+                cursor.execute("""
+                    SELECT Timestamp
+                    FROM daftListing.PropertyPriceHistory 
+                    WHERE Id = %s;
+                """, (listing[0],))
+                price_dates = cursor.fetchall()
+
                 jsonEntry = {
                     "listing_id": listing[0],
                     "address": listing[1],
@@ -133,7 +147,9 @@ def getListings():
                     "commute_times": {
                         "car": str(car_time),
                         "walk": str(walk_time)
-                    }
+                    },
+                "price_history": price_history,
+                    "price_dates": price_dates,
                 }
                 response["listings"].append(jsonEntry)
             
