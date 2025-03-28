@@ -9,8 +9,8 @@ Irish house listing open-source software that
 - Listing saving and user management
 
 ## Demo
-- The frontend is accessible from gdp4.sprinty.tech
-- Backend is accessible using gdp4back.sprinty.tech
+- The frontend is accessible from [gdp4.sprinty.tech](gdp4.sprinty.tech)
+- Backend is accessible using [gdp4back.sprinty.tech](gdp4back.sprinty.tech)
 
 ## Deployment
 
