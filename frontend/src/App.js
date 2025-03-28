@@ -3,6 +3,7 @@ import IndividualListings from "./Pages/IndividualListings";
 import Listings from "./Pages/Listings";
 import Search from "./Pages/Search";
 import LoginPage from "./Pages/LoginPage";
+import SavedListings from "./Pages/SavedListings";
 
 const RequireAuth = ({ children }) => {
     const token = localStorage.getItem("google_token");
@@ -14,11 +15,11 @@ function App() {
       <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
-        <Route path="/search" element={<RequireAuth><Search/></RequireAuth>} />
-        <Route path="/listings" element={<RequireAuth><Listings/></RequireAuth>} />
-        <Route path="/listing/:id/:commute" element={<RequireAuth><IndividualListings /></RequireAuth>} />
-
-        <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/search" element={<RequireAuth><Search/></RequireAuth>} />
+          <Route path="/listings" element={<RequireAuth><Listings/></RequireAuth>} />
+          <Route path="/listing/:id/:commute" element={<RequireAuth><IndividualListings /></RequireAuth>} />
+          <Route path="/saved-listings" element={<SavedListings />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );
