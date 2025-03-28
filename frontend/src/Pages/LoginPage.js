@@ -24,6 +24,7 @@ const LoginPage = () => {
 
         const btnDiv = document.getElementById("google-login-button");
         if (btnDiv) {
+            btnDiv.innerHTML = "";
             window.google.accounts.id.renderButton(btnDiv, {
                 theme: "outline",
                 size: "large",
@@ -57,7 +58,7 @@ const LoginPage = () => {
 
                 <div id="google-login-button" className="mb-4"></div>
 
-                <p className="text-xs text-gray-400 mt-4">© 2025 House Scraper Team Group4. All rights reserved.</p>
+                <p className="text-xs text-gray-400 mt-4"> Group4</p>
             </div>
         </div>
     );
