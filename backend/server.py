@@ -175,7 +175,7 @@ def getListings():
                     "bedrooms": listing[3],
                     "bathrooms": listing[4],
                     "size": listing[5],
-                    "current_price": listing[8],
+                    "price": listing[8],
                     "images": [sub[0] for sub in images],
                     "distance": distance,
                     "commute_times": {
