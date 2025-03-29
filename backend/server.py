@@ -193,16 +193,18 @@ def getListing():
 @app.route("/getListings", methods=['GET'])
 def getListings():
     load_dotenv()
+    # ignore default values
+    defaultParams = ["Min", "Max", "Any", ""]
     try:
         listing_type = request.args.get('type')
         location = request.args.get('location')
         commute = request.args.get('commute')
-        priceMin = request.args.get('price-min') if request.args.get('price-min') != "Min" else None
-        priceMax = request.args.get('price-max') if request.args.get('price-max') != "Max" else None
-        beds = request.args.get('beds') if request.args.get('beds') != "Any" else None
-        baths = request.args.get('baths') if request.args.get('baths') != "Any" else None
-        sizeMin = request.args.get('size-min') if request.args.get('size-min') != "Min" else None
-        sizeMax = request.args.get('size-max') if request.args.get('size-max') != "Max" else None
+        priceMin = request.args.get('price-min') if not request.args.get('price-min') in defaultParams else None
+        priceMax = request.args.get('price-max') if not request.args.get('price-max') in defaultParams else None
+        beds = request.args.get('beds') if not request.args.get('beds') in defaultParams else None
+        baths = request.args.get('baths') if not request.args.get('baths') in defaultParams else None
+        sizeMin = request.args.get('size-min') if not request.args.get('size-min') in defaultParams else None
+        sizeMax = request.args.get('size-max') if not request.args.get('size-max') in defaultParams else None
         print(listing_type, location, commute, flush =True)
         print("Type:", listing_type)
         print("Location:", location)
