@@ -98,22 +98,102 @@ def maps():
     dist, drive, walk = get_distance_and_times(origin, dest, google_api_key)
     return jsonify({"distance": dist, "drive_time": drive, "walk_time": walk})
 
+@app.route("/getListing", methods=['GET'])
+def getListing():
+    load_dotenv()
+    try:
+        listing_id = int(request.args.get('listing_id'))
+    except:
+        return jsonify({"error": "Missing required parameters"}), 400
+
+    try:
+        conn = mysql.connector.connect(
+            host=os.getenv('DATABASE_HOST'),
+            port=os.getenv('DATABASE_PORT'),
+            user=os.getenv('DATABASE_USER'),
+            password=os.getenv('DATABASE_PASSWORD'),
+            database=os.getenv('DATABASE_NAME')
+        )
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT pd.*, pph.Price
+                FROM PropertyDetails pd
+                JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
+                WHERE pd.Id = %s;
+            """, (listing_id,))
+            results = cursor.fetchall()
+            listing = results[0]
+            cursor.execute("""
+                SELECT Link FROM PropertyPictures WHERE PropertyId = %s;
+            """, (listing_id,))
+            images = cursor.fetchall()
+            print(f"Listing: {listing}", flush=True)  # Debug print
+
+            cursor.execute("""
+                SELECT Price
+                FROM daftListing.PropertyPriceHistory 
+                WHERE PropertyId = %s;
+            """, (listing_id,))
+            price_history = cursor.fetchall()
+
+            cursor.execute("""
+                SELECT Timestamp
+                FROM daftListing.PropertyPriceHistory 
+                WHERE PropertyId = %s;
+            """, (listing_id,))
+            price_dates = cursor.fetchall()
+
+            jsonEntry = {
+                "listing_id": listing[0],
+                "address": listing[1],
+                "eircode": listing[2],
+                "bedrooms": listing[3],
+                "bathrooms": listing[4],
+                "size": listing[5],
+                "current_price": listing[8],
+                "images": [sub[0] for sub in images],
+                "price_history": price_history,
+                "price_dates": price_dates,
+            }
+            conn.close()
+        return(jsonify(jsonEntry))
+
+    except mysql.connector.Error as e:
+        print(f"Error from mysql connector: {e}")
+        return jsonify({"error": f"{e}"}), 500
+
 @app.route("/getListings", methods=['GET'])
 def getListings():
     load_dotenv()
+    # ignore default values
+    defaultParams = ["Min", "Max", "Any", ""]
     try:
         listing_type = request.args.get('type')
         location = request.args.get('location')
         commute = request.args.get('commute')
+        priceMin = request.args.get('price-min') if not request.args.get('price-min') in defaultParams else None
+        priceMax = request.args.get('price-max') if not request.args.get('price-max') in defaultParams else None
+        beds = request.args.get('beds') if not request.args.get('beds') in defaultParams else None
+        baths = request.args.get('baths') if not request.args.get('baths') in defaultParams else None
+        sizeMin = request.args.get('size-min') if not request.args.get('size-min') in defaultParams else None
+        sizeMax = request.args.get('size-max') if not request.args.get('size-max') in defaultParams else None
         print(listing_type, location, commute, flush =True)
+        print("Type:", listing_type)
+        print("Location:", location)
+        print("Commute:", commute)
+        print("Price Min:", request.args.get('price-min'))
+        print("Price Max:", request.args.get('price-max'))
+        print("Beds:", request.args.get('beds'))
+        print("Baths:", request.args.get('baths'))
+        print("Size Min:", request.args.get('size-min'))
+        print("Size Max:", request.args.get('size-max'))
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
     ForSaleValue = 1
 
     if listing_type == "rent":
         ForSaleValue = 0
-        location = ""
-        # return all
+    
     try:
         response = {
             "total_results": 0,
@@ -126,38 +206,73 @@ def getListings():
             password=os.getenv('DATABASE_PASSWORD'),
             database=os.getenv('DATABASE_NAME')
         )
-        print(len(location), flush=True)
         with conn.cursor() as cursor:
-            if len(location) == 3:
-                cursor.execute("""
-                    SELECT pd.*, pph.Price
-                    FROM PropertyDetails pd
-                    JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
-                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND pd.ForSale = %s AND pd.Eircode LIKE %s;
-                """, (ForSaleValue,f"{location}%"))
-            else:
-                cursor.execute("""
-                    SELECT pd.*, pph.Price
-                    FROM PropertyDetails pd
-                    JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
-                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND ForSale = %s;
-                """, (ForSaleValue,))
+            sql_query = """
+                SELECT pd.*, pph.Price
+                FROM PropertyDetails pd
+                JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
+                WHERE pph.Timestamp = (
+                    SELECT MAX(Timestamp) FROM PropertyPriceHistory WHERE Timestamp >= NOW() - INTERVAL 1 DAY AND PropertyId = pd.Id 
+                )
+                AND pd.ForSale = %s
+            """
+            params = [ForSaleValue]
+            if location is not None:
+                if len(location) == 3:
+                    sql_query += " AND pd.Eircode LIKE %s"
+                    params.append(f"{location}%")
+            if priceMin != None:
+                sql_query += " AND pph.Price >= %s"
+                params.append(priceMin)
+            if priceMax != None:
+                sql_query += " AND pph.Price <= %s"
+                params.append(priceMax)
+            if beds != None:
+                sql_query += " AND pd.Bed >= %s"
+                params.append(beds)
+            if baths != None:
+                sql_query += " AND pd.Bath >= %s"
+                params.append(baths)
+            if sizeMin != None:
+                sql_query += " AND pd.Size >= %s"
+                params.append(sizeMin)
+            if sizeMax != None:
+                sql_query += " AND pd.Size <= %s"
+                params.append(sizeMax)
+            cursor.execute(sql_query, tuple(params))
             results = cursor.fetchall()
             response["total_results"] = len(results)
+
             print(f"Total results: {len(results)}", flush=True)  # Debug print
+            # fetch pics from the filtered results
+
             for listing in results:
                 cursor.execute("""
                     SELECT Link FROM PropertyPictures WHERE PropertyId = %s;
                 """, (listing[0],))
                 images = cursor.fetchall()
-                print(f"Listing: {listing}", flush=True)  # Debug print
+                # print(f"Listing: {listing}", flush=True)  # Debug print
                 distance, car_time, walk_time = 0,0,0
                 if ForSaleValue:
                     listing_location = eircode_map.get(location.upper(), location) # Translate Eircode to location name
                     if listing_location == location.upper():
                         listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
-                    print(f"Listing location: {listing_location}", flush=True)  # Debug print
+                    # print(f"Listing location: {listing_location}", flush=True)  # Debug print
                     distance, car_time, walk_time = get_distance_and_times(listing_location, listing[1], google_api_key)
+
+                cursor.execute("""
+                    SELECT Price
+                    FROM daftListing.PropertyPriceHistory 
+                    WHERE PropertyId = %s;
+                """, (listing[0],))
+                price_history = cursor.fetchall()
+
+                cursor.execute("""
+                    SELECT Timestamp
+                    FROM daftListing.PropertyPriceHistory 
+                    WHERE PropertyId = %s;
+                """, (listing[0],))
+                price_dates = cursor.fetchall()
 
                 jsonEntry = {
                     "listing_id": listing[0],
@@ -172,16 +287,18 @@ def getListings():
                     "commute_times": {
                         "car": str(car_time),
                         "walk": str(walk_time)
-                    }
+                    },
+                "price_history": price_history,
+                    "price_dates": price_dates,
                 }
                 response["listings"].append(jsonEntry)
             
         conn.close()
         return jsonify(response)
-
     except mysql.connector.Error as e:
         print(f"Error from mysql connector: {e}")
         return jsonify({"error": f"{e}"}), 500
+
 
 def initScrap():
     load_dotenv()
@@ -236,6 +353,5 @@ if __name__ == "__main__":
     if initScrap():
         print(f"init scrap @{datetime.datetime.now()}", flush=True)
         scrap_daft.scrap()
-    
+ 
     app.run(host="0.0.0.0", port=5300)
-
