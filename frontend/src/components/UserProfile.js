@@ -31,7 +31,7 @@ const UserProfile = () => {
     };
 
     const handleFavourites = () => {
-        window.location.href = "/favourites";
+        window.location.href = "/saved-listings";
     };
 
     useEffect(() => {
