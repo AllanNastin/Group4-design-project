@@ -21,7 +21,7 @@ services:
 
     volumes:
       - .:/app
-    
+ 
   db:
     #build: ./db # local image
     image: ghcr.io/allannastin/gdp4-db:dev

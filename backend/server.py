@@ -102,18 +102,10 @@ def maps():
 def getListing():
     load_dotenv()
     try:
-        listing_type = request.args.get('type')
-        location = request.args.get('location')
-        listing_id = request.args.get('listing_id')
-        # commute = request.args.get('commute')
-        # print(listing_type, location, commute, flush =True)
-    except KeyError:
+        listing_id = int(request.args.get('listing_id'))
+    except:
         return jsonify({"error": "Missing required parameters"}), 400
-    ForSaleValue = 1
 
-    if listing_type == "rent":
-        ForSaleValue = 0
-        location = ""
     try:
         conn = mysql.connector.connect(
             host=os.getenv('DATABASE_HOST'),
@@ -122,69 +114,49 @@ def getListing():
             password=os.getenv('DATABASE_PASSWORD'),
             database=os.getenv('DATABASE_NAME')
         )
-        # print(len(location), flush=True)
         with conn.cursor() as cursor:
-            if len(location) == 3:
-                cursor.execute("""
-                    SELECT pd.*, pph.Price
-                    FROM PropertyDetails pd
-                    JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
-                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND pd.ForSale = %s AND pd.Eircode LIKE %s;
-                """, (ForSaleValue,f"{location}%"))
-            else:
-                cursor.execute("""
-                    SELECT pd.*, pph.Price
-                    FROM PropertyDetails pd
-                    JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
-                    WHERE pph.Timestamp >= NOW() - INTERVAL 1 DAY AND ForSale = %s;
-                """, (ForSaleValue,))
+            cursor.execute("""
+                SELECT pd.*, pph.Price
+                FROM PropertyDetails pd
+                JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
+                WHERE pd.Id = %s;
+            """, (listing_id,))
             results = cursor.fetchall()
-            # return jsonify(results[0])
-            # return jsonify(results)
-            for listing in results:
-                if (int(listing[0]) == int(listing_id)):
-                    cursor.execute("""
-                        SELECT Link FROM PropertyPictures WHERE PropertyId = %s;
-                    """, (listing[0],))
-                    images = cursor.fetchall()
-                    # print(f"Listing: {listing}", flush=True)  # Debug print
-                    distance, car_time, walk_time = 0,0,0
+            listing = results[0]
+            cursor.execute("""
+                SELECT Link FROM PropertyPictures WHERE PropertyId = %s;
+            """, (listing_id,))
+            images = cursor.fetchall()
+            print(f"Listing: {listing}", flush=True)  # Debug print
 
-                    cursor.execute("""
-                        SELECT Price
-                        FROM daftListing.PropertyPriceHistory 
-                        WHERE PropertyId = %s;
-                    """, (listing[0],))
-                    price_history = cursor.fetchall()
+            cursor.execute("""
+                SELECT Price
+                FROM daftListing.PropertyPriceHistory 
+                WHERE PropertyId = %s;
+            """, (listing_id,))
+            price_history = cursor.fetchall()
 
-                    cursor.execute("""
-                        SELECT Timestamp
-                        FROM daftListing.PropertyPriceHistory 
-                        WHERE PropertyId = %s;
-                    """, (listing[0],))
-                    price_dates = cursor.fetchall()
+            cursor.execute("""
+                SELECT Timestamp
+                FROM daftListing.PropertyPriceHistory 
+                WHERE PropertyId = %s;
+            """, (listing_id,))
+            price_dates = cursor.fetchall()
 
-                    jsonEntry = {
-                        "listing_id": listing[0],
-                        "address": listing[1],
-                        "eircode": listing[2],
-                        "bedrooms": listing[3],
-                        "bathrooms": listing[4],
-                        "size": listing[5],
-                        "current_price": listing[8],
-                        "images": [sub[0] for sub in images],
-                        "distance": distance,
-                        "commute_times": {
-                            "car": str(car_time),
-                            "walk": str(walk_time)
-                        },
-                    "price_history": price_history,
-                        "price_dates": price_dates,
-                    }
-                    conn.close()
-                    return(jsonify(jsonEntry))
+            jsonEntry = {
+                "listing_id": listing[0],
+                "address": listing[1],
+                "eircode": listing[2],
+                "bedrooms": listing[3],
+                "bathrooms": listing[4],
+                "size": listing[5],
+                "current_price": listing[8],
+                "images": [sub[0] for sub in images],
+                "price_history": price_history,
+                "price_dates": price_dates,
+            }
             conn.close()
-            return(jsonify({}))
+        return(jsonify(jsonEntry))
 
     except mysql.connector.Error as e:
         print(f"Error from mysql connector: {e}")
@@ -193,16 +165,18 @@ def getListing():
 @app.route("/getListings", methods=['GET'])
 def getListings():
     load_dotenv()
+    # ignore default values
+    defaultParams = ["Min", "Max", "Any", ""]
     try:
         listing_type = request.args.get('type')
         location = request.args.get('location')
         commute = request.args.get('commute')
-        priceMin = request.args.get('price-min') if request.args.get('price-min') != "Min" else None
-        priceMax = request.args.get('price-max') if request.args.get('price-max') != "Max" else None
-        beds = request.args.get('beds') if request.args.get('beds') != "Any" else None
-        baths = request.args.get('baths') if request.args.get('baths') != "Any" else None
-        sizeMin = request.args.get('size-min') if request.args.get('size-min') != "Min" else None
-        sizeMax = request.args.get('size-max') if request.args.get('size-max') != "Max" else None
+        priceMin = request.args.get('price-min') if not request.args.get('price-min') in defaultParams else None
+        priceMax = request.args.get('price-max') if not request.args.get('price-max') in defaultParams else None
+        beds = request.args.get('beds') if not request.args.get('beds') in defaultParams else None
+        baths = request.args.get('baths') if not request.args.get('baths') in defaultParams else None
+        sizeMin = request.args.get('size-min') if not request.args.get('size-min') in defaultParams else None
+        sizeMax = request.args.get('size-max') if not request.args.get('size-max') in defaultParams else None
         print(listing_type, location, commute, flush =True)
         print("Type:", listing_type)
         print("Location:", location)

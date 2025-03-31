@@ -22,7 +22,12 @@ def get_property_listings(url):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     }
     toReturn = []
-    response = requests.get(url, headers=headers)
+    response = None
+    try:
+        response = requests.get(url, headers=headers)
+    except:
+        print("Error fetching the page")
+        return []
     if response.status_code != 200:
         print("Failed to retrieve the webpage")
         print(f"Status code: {response.status_code}")
