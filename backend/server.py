@@ -13,6 +13,8 @@ import datetime
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, JWTManager
 
+listing_return_limit=" LIMIT 30"
+
 load_dotenv()
 google_api_key = os.getenv("GOOGLE_API_KEY")
 app = Flask(__name__)
@@ -239,6 +241,10 @@ def getListings():
             if sizeMax != None:
                 sql_query += " AND pd.Size <= %s"
                 params.append(sizeMax)
+            
+            # Limit the number of results to 30
+            sql_query += listing_return_limit
+
             cursor.execute(sql_query, tuple(params))
             results = cursor.fetchall()
             response["total_results"] = len(results)
