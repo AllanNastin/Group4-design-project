@@ -97,8 +97,8 @@ def main():
 def maps():
     origin = request.args.get('origin')
     dest = request.args.get('dest')
-    dist, drive, walk = get_distance_and_times(origin, dest, google_api_key)
-    return jsonify({"distance": dist, "drive_time": drive, "walk_time": walk})
+    dist, drive, walk, public, cycling = get_distance_and_times(origin, dest, google_api_key)
+    return jsonify({"distance": dist, "drive_time": drive, "walk_time": walk, "public_time": public, "cycling_time": cycling})
 
 @app.route("/getListing", methods=['GET'])
 def getListing():
@@ -258,13 +258,11 @@ def getListings():
                 """, (listing[0],))
                 images = cursor.fetchall()
                 # print(f"Listing: {listing}", flush=True)  # Debug print
-                distance, car_time, walk_time = 0,0,0
-                if ForSaleValue:
-                    listing_location = eircode_map.get(location.upper(), location) # Translate Eircode to location name
-                    if listing_location == location.upper():
-                        listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
-                    # print(f"Listing location: {listing_location}", flush=True)  # Debug print
-                    distance, car_time, walk_time = get_distance_and_times(listing_location, listing[1], google_api_key)
+                listing_location = eircode_map.get(location.upper(), location) # Translate Eircode to location name
+                if listing_location == location.upper():
+                    listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
+                # print(f"Listing location: {listing_location}", flush=True)  # Debug print
+                distance, car_time, walk_time, public_time, cycling_time = get_distance_and_times(listing_location, listing[1], google_api_key)
 
                 cursor.execute("""
                     SELECT Price
@@ -292,7 +290,9 @@ def getListings():
                     "distance": distance,
                     "commute_times": {
                         "car": str(car_time),
-                        "walk": str(walk_time)
+                        "walk": str(walk_time),
+                        "public": str(public_time),
+                        "cycling": str(cycling_time),
                     },
                 "price_history": price_history,
                     "price_dates": price_dates,
