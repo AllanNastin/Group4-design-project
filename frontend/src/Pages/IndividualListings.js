@@ -154,6 +154,8 @@ const IndividualListings = () => {
                   <ListGroup variant="flush">
                     <ListGroup.Item>🚗 By Car: {listing.commute_times?.car} min</ListGroup.Item>
                     <ListGroup.Item>🚶‍ By Walk: {listing.commute_times?.walk} min</ListGroup.Item>
+                    <ListGroup.Item>🚲 By Cycling: {listing.commute_times?.cycling} min</ListGroup.Item>
+                    <ListGroup.Item>🚌 By Public Transport: {listing.commute_times?.public} min</ListGroup.Item>
                   </ListGroup>
                 </Col>
               </Row>
