@@ -26,25 +26,6 @@ const IndividualListings = () => {
     if (state && state.listing) {
       const listingData = state.listing;
 
-      if (!listingData.price_history || !listingData.price_dates) {
-        const mockPriceHistory = [listingData.price];
-        const mockPriceDates = [new Date().toISOString().split('T')[0]];
-        const basePrice = listingData.price;
-        const currentDate = new Date();
-
-        for (let i = 1; i < 10; i++) {
-          mockPriceHistory.push(basePrice + (Math.random() * 2000 - 1000));
-          const date = new Date(currentDate);
-          date.setMonth(currentDate.getMonth() - i);
-          mockPriceDates.push(date.toISOString().split('T')[0]);
-        }
-
-        listingData.price_history = mockPriceHistory.reverse();
-        listingData.price_dates = mockPriceDates.reverse();
-      }
-
-      setListing(listingData);
-      setLoading(false);
 
       let savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
       savedListings = savedListings.filter(savedItem => savedItem !== null && savedItem !== undefined);
