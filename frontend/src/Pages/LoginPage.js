@@ -1,76 +1,78 @@
-import React, { useEffect } from "react";
+import React from "react";
+import { Container, Card } from "react-bootstrap";
 
 const LoginPage = () => {
-    useEffect(() => {
-        /* global google */
-        if (window.google) {
-            google.accounts.id.initialize({
-                client_id: "YOUR_CLIENT_ID_HERE",
-                callback: handleCredentialResponse,
-            });
-
-            google.accounts.id.renderButton(
-                document.getElementById("googleSignIn"),
-                {
-                    theme: "outline",
-                    size: "large",
-                    shape: "pill",
-                    width: "100%",
-                }
-            );
-        }
-    }, []);
-
-    const handleCredentialResponse = (response) => {
-        console.log("Google login token:", response.credential);
-        // Send token to backend or handle auth here
-    };
-
     return (
-        <div style={styles.page}>
-            <div style={styles.card}>
-                <h1 style={styles.title}>Welcome to House Scraper</h1>
-                <p style={styles.subtitle}>
-                    Sign in with Google to explore smart housing listings tailored just for you.
-                </p>
-                <div id="googleSignIn" style={{ marginTop: "1.5rem" }} />
-                <p style={styles.footer}>Powered by Group 4 — 2025</p>
-            </div>
+        <div style={styles.pageWrapper}>
+            <div style={styles.overlay} />
+            <Container style={styles.container}>
+                <Card style={styles.card}>
+                    <Card.Body className="text-center">
+                        <h1 className="mb-4">Welcome</h1>
+                        <p className="mb-4">
+                            Log in with Google to explore smart housing listings tailored to you.
+                        </p>
+                        <div id="g_id_onload"
+                             data-client_id="YOUR_CLIENT_ID"
+                             data-context="signin"
+                             data-ux_mode="popup"
+                             data-callback="handleCredentialResponse"
+                             data-auto_prompt="false"
+                        ></div>
+
+                        <div className="g_id_signin"
+                             data-type="standard"
+                             data-shape="rectangular"
+                             data-theme="outline"
+                             data-text="sign_in_with"
+                             data-size="large"
+                             data-logo_alignment="left"
+                        ></div>
+
+                        <p className="mt-4 text-muted">
+                            Powered by House Scraper • Group 4 — 2025
+                        </p>
+                    </Card.Body>
+                </Card>
+            </Container>
         </div>
     );
 };
 
 const styles = {
-    page: {
-        minHeight: "100vh",
-        background: "linear-gradient(to bottom right, #e6f0ff, #ffffff)",
+    pageWrapper: {
+        backgroundImage: `url('/images.jpeg')`,
+        backgroundSize: "cover",
+        backgroundPosition: "center center",
+        backgroundRepeat: "no-repeat",
+        height: "100vh",
+        position: "relative",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "2rem",
+    },
+    overlay: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        height: "100%",
+        width: "100%",
+        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        backdropFilter: "blur(4px)",
+        zIndex: 1,
+    },
+    container: {
+        position: "relative",
+        zIndex: 2,
     },
     card: {
-        background: "white",
-        borderRadius: "20px",
-        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.1)",
-        padding: "2.5rem 3rem",
+        padding: "40px",
+        borderRadius: "16px",
+        boxShadow: "0 8px 20px rgba(0, 0, 0, 0.25)",
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
         maxWidth: "500px",
-        textAlign: "center",
-    },
-    title: {
-        fontSize: "2rem",
-        marginBottom: "0.5rem",
-        fontWeight: "600",
-    },
-    subtitle: {
-        fontSize: "1rem",
-        color: "#555",
-    },
-    footer: {
-        fontSize: "0.85rem",
-        marginTop: "2rem",
-        color: "#999",
-    },
+        margin: "auto",
+    }
 };
 
 export default LoginPage;
