@@ -31,8 +31,6 @@ def get_distance_and_times(origin, destination, api_key):
         else:
             print(f"Error in walking distance matrix: {walk_result.get('status', 'Unknown')}")
             walking_time_minutes = None
-
-
         public_result = gmaps.distance_matrix(
             origins=[origin],
             destinations=[destination],

@@ -43,7 +43,7 @@ scheduler.add_job(scheduled_scrap, 'cron', hour=17, minute=30)
 def register():
     data = request.json
     hashed_password = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
-    
+
     try:
         conn = mysql.connector.connect(
             host=os.getenv('DATABASE_HOST'),
@@ -262,7 +262,7 @@ def getListings():
                 if listing_location == location.upper():
                     listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
                 # print(f"Listing location: {listing_location}", flush=True)  # Debug print
-                distance, car_time, walk_time, public_time, cycling_time = get_distance_and_times(listing_location, listing[1], google_api_key)
+                distance, car_time, walk_time, public_time, cycling_time = get_distance_and_times(listing_location, commute, google_api_key)
 
                 cursor.execute("""
                     SELECT Price
