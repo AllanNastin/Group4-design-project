@@ -264,19 +264,26 @@ def getListings():
                 # print(f"Listing location: {listing_location}", flush=True)  # Debug print
                 distance, car_time, walk_time, public_time, cycling_time = get_distance_and_times(listing_location, listing[1], google_api_key)
 
-                cursor.execute("""
-                    SELECT Price
-                    FROM daftListing.PropertyPriceHistory 
-                    WHERE PropertyId = %s;
-                """, (listing[0],))
-                price_history = cursor.fetchall()
+                price_history = []
+                price_dates = []
 
                 cursor.execute("""
-                    SELECT Timestamp
+                    SELECT Price, Timestamp 
                     FROM daftListing.PropertyPriceHistory 
-                    WHERE PropertyId = %s;
+                    WHERE PropertyId = %s
+                    ORDER BY Timestamp ASC;
                 """, (listing[0],))
-                price_dates = cursor.fetchall()
+
+                results = cursor.fetchall()
+
+                if results:
+                    # Use zip(*results) to transpose the list of tuples 
+                    # It creates two tuples: one with all prices, one with all timestamps
+                    raw_prices, raw_dates = zip(*results) 
+                    
+                    # Convert the tuple of prices into a list
+                    price_history = list(raw_prices)
+                    price_dates = [d.strftime('%Y-%m-%d') for d in raw_dates]
 
                 jsonEntry = {
                     "listing_id": listing[0],
