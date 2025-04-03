@@ -47,8 +47,7 @@ def getListing():
         listing_type = request.args.get('type')
         location = request.args.get('location')
         listing_id = request.args.get('listing_id')
-        # commute = request.args.get('commute')
-        # print(listing_type, location, commute, flush =True)
+        commute = request.args.get('commute')
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
     ForSaleValue = 1
@@ -96,8 +95,8 @@ def getListing():
                         if listing_location == location.upper():
                             listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
                         # print(f"Listing location: {listing_location}", flush=True)  # Debug print
-                        distance, car_time, walk_time = get_distance_and_times(listing_location, listing[1], google_api_key)
-
+                        # distance, car_time, walk_time = get_distance_and_times(listing_location, listing[1], google_api_key)
+                        distance, car_time, walk_time = get_distance_and_times(listing_location, commute, google_api_key)
                     cursor.execute("""
                         SELECT Price
                         FROM daftListing.PropertyPriceHistory 
@@ -143,7 +142,6 @@ def getListings():
         listing_type = request.args.get('type')
         location = request.args.get('location')
         commute = request.args.get('commute')
-        print(listing_type, location, commute, flush =True)
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
     ForSaleValue = 1
@@ -195,7 +193,7 @@ def getListings():
                     if listing_location == location.upper():
                         listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
                     # print(f"Listing location: {listing_location}", flush=True)  # Debug print
-                    distance, car_time, walk_time = get_distance_and_times(listing_location, listing[1], google_api_key)
+                    distance, car_time, walk_time = get_distance_and_times(listing_location, commute, google_api_key)
 
                 cursor.execute("""
                     SELECT Price
