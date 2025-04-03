@@ -283,7 +283,7 @@ def getListings():
                     
                     # Convert the tuple of prices into a list
                     price_history = list(raw_prices)
-                    price_dates = [d.strftime('%Y-%m-%d') for d in raw_dates]
+                    price_dates = [d.strftime('%d/%m/%Y') for d in raw_dates]
 
                 jsonEntry = {
                     "listing_id": listing[0],
