@@ -8,3 +8,4 @@ APScheduler
 googlemaps
 Flask-JWT-Extended
 Flask-Bcrypt
+requests
