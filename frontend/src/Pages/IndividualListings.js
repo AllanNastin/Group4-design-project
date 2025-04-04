@@ -26,6 +26,8 @@ const IndividualListings = () => {
     if (state && state.listing) {
       const listingData = state.listing;
 
+      setListing(listingData);
+      setLoading(false);
 
       let savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
       savedListings = savedListings.filter(savedItem => savedItem !== null && savedItem !== undefined);
