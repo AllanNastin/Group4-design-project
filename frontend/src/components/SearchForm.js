@@ -7,8 +7,10 @@ const SearchForm = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [eircodeList, setEircodeList] = useState([]);
     const [selectedPropertyEircode, setSelectedPropertyEircode] = useState("");
-    const [commuteLocation, setCommuteLocation] = useState(""); // Changed to a text input
+    const [commuteLocation, setCommuteLocation] = useState("");
     const [validated, setValidated] = useState(false);
+    const [priceMin, setPriceMin] = useState("");
+    const [priceMax, setPriceMax] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -24,11 +26,34 @@ const SearchForm = () => {
             .catch((error) => console.error("Error loading Eircodes:", error));
     }, []);
 
-    // select list
     const propertyOptions = eircodeList.map((entry) => ({
         label: `${entry.location} (${entry.code})`,
         value: entry.code,
     }));
+
+    // --- Price Validation Logic ---
+    const handlePriceMinBlur = () => {
+        // Check only if both fields have values that can be parsed as numbers
+        const min = parseFloat(priceMin);
+        const max = parseFloat(priceMax);
+
+        if (!isNaN(min) && !isNaN(max) && min > max) {
+            // If min is greater than max, set max equal to min
+            setPriceMax(priceMin);
+        }
+    };
+
+    const handlePriceMaxBlur = () => {
+        // Check only if both fields have values that can be parsed as numbers
+        const min = parseFloat(priceMin);
+        const max = parseFloat(priceMax);
+
+        if (!isNaN(min) && !isNaN(max) && max < min) {
+            // If max is less than min, set min equal to max
+            setPriceMin(priceMax);
+        }
+    };
+    // --- End Price Validation Logic ---
 
     const submitForm = (e) => {
         e.preventDefault();
@@ -42,13 +67,15 @@ const SearchForm = () => {
             const formData = new FormData(e.target);
             let payload = Object.fromEntries(formData);
 
-            // Ensure the commute location (text input) is included
             payload.commute = commuteLocation;
-            payload.location = selectedPropertyEircode; // Make sure the selected property eircode is included
+            payload.location = selectedPropertyEircode;
 
-            // Ensure all numeric values are sent correctly
-            payload["price-min"] = formData.get("price-min") || "";
-            payload["price-max"] = formData.get("price-max") || "";
+            // Ensure correct price values from state are used,
+            // as FormData might not capture the updated state from blur events perfectly
+            // if submit happens immediately after blur without re-render.
+            // Also handles sending empty strings if fields are empty.
+            payload["price-min"] = priceMin || "";
+            payload["price-max"] = priceMax || "";
             payload["beds"] = formData.get("beds") || "";
             payload["baths"] = formData.get("baths") || "";
             payload["size-min"] = formData.get("size-min") || "";
@@ -57,13 +84,11 @@ const SearchForm = () => {
 
             console.log("Form payload being sent:", payload);
 
-            // Send data to backend via navigate
             navigate("/listings", { state: { payload } });
         }
 
         setValidated(true);
     };
-
 
     return (
         <Container className="mt-5">
@@ -109,23 +134,25 @@ const SearchForm = () => {
                                 <Form.Group className="mb-3">
                                     <Form.Label>Price (€)</Form.Label>
                                     <div className="mb-3 d-flex align-items-center">
-                                        <Form.Select name="price-min">
-                                            <option>Min</option>
-                                            <option value="50000">€50,000</option>
-                                            <option value="100000">€100,000</option>
-                                            <option value="200000">€200,000</option>
-                                            <option value="300000">€300,000</option>
-                                            <option value="500000">€500,000</option>
-                                        </Form.Select>
+                                        <Form.Control
+                                            type="number"
+                                            name="price-min" // Keep name for FormData
+                                            placeholder="Min"
+                                            value={priceMin}
+                                            onChange={(e) => setPriceMin(e.target.value)} // Only update state on change
+                                            onBlur={handlePriceMinBlur} // Validate/adjust on blur
+                                            step="any" // Allow decimals
+                                        />
                                         <Form.Text className="mx-2">to</Form.Text>
-                                        <Form.Select name="price-max">
-                                            <option>Max</option>
-                                            <option value="100000">€100,000</option>
-                                            <option value="200000">€200,000</option>
-                                            <option value="300000">€300,000</option>
-                                            <option value="500000">€500,000</option>
-                                            <option value="1000000">€1,000,000+</option>
-                                        </Form.Select>
+                                        <Form.Control
+                                            type="number"
+                                            name="price-max" // Keep name for FormData
+                                            placeholder="Max"
+                                            value={priceMax}
+                                            onChange={(e) => setPriceMax(e.target.value)} // Only update state on change
+                                            onBlur={handlePriceMaxBlur} // Validate/adjust on blur
+                                            step="any" // Allow decimals
+                                        />
                                     </div>
                                 </Form.Group>
 
@@ -187,7 +214,7 @@ const SearchForm = () => {
                             variant="secondary"
                             onClick={(e) => { e.preventDefault(); setShowFilters(!showFilters); }}
                         >
-                            Filters
+                            {showFilters ? "Hide Filters" : "Show Filters"}
                         </Button>
                         <Button variant="primary" type="submit" disabled={!selectedPropertyEircode || !commuteLocation}>
                             Submit
