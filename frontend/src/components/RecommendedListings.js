@@ -99,8 +99,7 @@ const RecommendedListings = () => {
                                         <strong>Size:</strong>{" "}
                                         {listing.size ? `${listing.size} sq ft` : "N/A"}
                                         <br />
-                                        🚗 {listing.commute_times?.car ?? "?"} min | 🚶{" "}
-                                        {listing.commute_times?.walk ?? "?"} min
+
                                     </Card.Text>
                                     <Button variant="primary" onClick={() => handleClick(listing)}>
                                         View Details
