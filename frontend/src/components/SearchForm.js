@@ -1,17 +1,29 @@
-import { useState, useEffect } from "react";
-import { Container, Form, Card, Button } from "react-bootstrap";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Container, Form, Card, Button, ListGroup, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
+
+const apiUrl = process.env.REACT_APP_API_URL;
 
 const SearchForm = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [eircodeList, setEircodeList] = useState([]);
     const [selectedPropertyEircode, setSelectedPropertyEircode] = useState("");
     const [commuteLocation, setCommuteLocation] = useState("");
+
+    // --- State for Address Autocomplete ---
+    const [suggestions, setSuggestions] = useState([]);
+    const [isAddressLoading, setIsAddressLoading] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
     const [validated, setValidated] = useState(false);
     const [priceMin, setPriceMin] = useState("");
     const [priceMax, setPriceMax] = useState("");
     const navigate = useNavigate();
+
+    // --- Refs for Autocomplete ---
+    const debounceTimeoutRef = useRef(null);
+    const suggestionsContainerRef = useRef(null); // Ref for commute input + suggestions
 
     useEffect(() => {
         fetch("/Eircodes.json")
@@ -53,7 +65,74 @@ const SearchForm = () => {
             setPriceMin(priceMax);
         }
     };
+
     // --- End Price Validation Logic ---
+    const fetchAddressSuggestions = useCallback(async (query) => {
+        if (query.length < 2) {
+            setSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
+        setIsAddressLoading(true);
+        try {
+            const url = `${apiUrl}/address-suggestions?query=${encodeURIComponent(query)}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Network response was not ok (status: ${response.status})`);
+            }
+            const data = await response.json();
+            setSuggestions(data || []);
+            setShowSuggestions(data && data.length > 0);
+        } catch (error) {
+            console.error("Failed to fetch address suggestions:", error);
+            setSuggestions([]);
+            setShowSuggestions(false);
+        } finally {
+            setIsAddressLoading(false);
+        }
+    }, []);
+
+    // --- Commute Input Change Handler with Debouncing ---
+    const handleCommuteInputChange = (event) => {
+        const value = event.target.value;
+        setCommuteLocation(value); // Update the commute location state
+
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+        }
+        debounceTimeoutRef.current = setTimeout(() => {
+            if (value.trim()) {
+                fetchAddressSuggestions(value);
+            } else {
+                setSuggestions([]);
+                setShowSuggestions(false);
+            }
+        }, 350);
+    };
+
+    const handleSuggestionClick = (suggestion) => {
+        setCommuteLocation(suggestion.description); // Update input field
+        setSuggestions([]);
+        setShowSuggestions(false);
+        // Optional: Store place_id if needed
+    };
+
+    // --- Effect to Handle Clicks Outside the Suggestions ---
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            // Check if the click is outside the container referenced by suggestionsContainerRef
+            if (suggestionsContainerRef.current && !suggestionsContainerRef.current.contains(event.target)) {
+                setShowSuggestions(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            if (debounceTimeoutRef.current) {
+                clearTimeout(debounceTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const submitForm = (e) => {
         e.preventDefault();
@@ -113,20 +192,51 @@ const SearchForm = () => {
                         </Form.Group>
 
                         {/* ✅ Commute Field as Free Text */}
-                        <Form.Group className="mb-3">
-                            <Form.Label>with commuter times to</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="commute"
-                                placeholder="Enter a location (e.g. Dublin City Centre)"
-                                value={commuteLocation}
-                                onChange={(e) => setCommuteLocation(e.target.value)}
-                                required
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                Please enter a commute location.
-                            </Form.Control.Feedback>
-                        </Form.Group>
+                        <div style={{ position: 'relative' }} ref={suggestionsContainerRef}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>with commuter times to</Form.Label>
+                                <div style={{ position: 'relative' }}> {/* Inner div for spinner positioning */}
+                                    <Form.Control
+                                        type="text"
+                                        name="commute"
+                                        placeholder="Enter a location (e.g. Dublin City Centre)"
+                                        value={commuteLocation}
+                                        onChange={handleCommuteInputChange} // Use the debounced handler
+                                        onFocus={() => { if (commuteLocation && suggestions.length > 0) setShowSuggestions(true); }}
+                                        required
+                                        autoComplete="off" // Prevent browser autocomplete
+                                        isInvalid={validated && !commuteLocation} // Example validation state
+                                    />
+                                    {isAddressLoading && (
+                                         <Spinner
+                                             animation="border"
+                                             size="sm"
+                                             style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)' }}
+                                             aria-hidden="true"
+                                         />
+                                    )}
+                                    <Form.Control.Feedback type="invalid">
+                                        Please enter a commute location.
+                                    </Form.Control.Feedback>
+                                </div>
+                            </Form.Group>
+
+                            {/* Suggestions Dropdown (using ListGroup for Bootstrap look) */}
+                            {showSuggestions && suggestions.length > 0 && (
+                                <ListGroup className="suggestions-list" style={{ position: 'absolute', zIndex: 1050 /* Ensure above most elements */ }}>
+                                    {suggestions.map((suggestion) => (
+                                        <ListGroup.Item
+                                            key={suggestion.place_id}
+                                            action // Makes it look clickable
+                                            onClick={() => handleSuggestionClick(suggestion)}
+                                            className="suggestion-item" // Add custom class if needed
+                                        >
+                                            {suggestion.description}
+                                        </ListGroup.Item>
+                                    ))}
+                                </ListGroup>
+                            )}
+                        </div>
 
                         {showFilters && (
                             <>
