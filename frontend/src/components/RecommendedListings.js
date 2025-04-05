@@ -89,8 +89,8 @@ const RecommendedListings = () => {
                                     <Card.Title className="fs-5">{listing.address}</Card.Title>
                                     <Card.Text>
                                         <strong>Price:</strong>{" "}
-                                        {listing.current_price
-                                            ? `€${listing.current_price.toLocaleString()}`
+                                        {listing.price
+                                            ? `€${listing.price.toLocaleString()}`
                                             : "N/A"}
                                         <br />
                                         <strong>Bedrooms:</strong> {listing.bedrooms ?? "N/A"} |{" "}
