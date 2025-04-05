@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
+import requests
 import json
 from maps import get_distance_and_times
 import scrap_daft
@@ -9,6 +10,7 @@ import os
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 import time
+from urllib.parse import quote_plus
 import datetime
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, JWTManager
@@ -92,6 +94,82 @@ def login():
 @app.route("/")
 def main():
     return jsonify({"data": "hello world"})
+
+@app.route('/address-suggestions', methods=['GET'])
+def address_suggestions():
+    """
+    Provides address suggestions based on user input using Google Places Autocomplete API.
+    """
+    query = request.args.get('query')
+    # Restrict results to Ireland (using ISO 3166-1 Alpha-2 country code)
+    # This significantly improves relevance for your context.
+    country_restriction = "ie"
+
+    # --- Basic Input Validation ---
+    if not query or len(query) < 2: # Require at least 2 characters
+        return jsonify([]) # Return empty list if query is too short or missing
+
+    # --- Check if API Key is loaded ---
+    if not google_api_key:
+        print("ERROR: GOOGLE_API_KEY environment variable not set.", flush=True)
+        # Avoid exposing details, just log it server-side
+        return jsonify({"error": "Server configuration issue"}), 500
+
+    # --- Construct Google Places API URL ---
+    # URL encode the user's query to handle spaces and special characters
+    encoded_query = quote_plus(query)
+
+    # Documentation: developers.google.com/maps/documentation/places/web-service/autocomplete
+    google_api_url = (
+        f"https://maps.googleapis.com/maps/api/place/autocomplete/json?"
+        f"input={encoded_query}"
+        f"&key={google_api_key}"
+        # f"&types=address"  # Restrict results to addresses only
+        f"&components=country:{country_restriction}" # Strongly recommended: restrict to Ireland
+        # Optional: Add sessiontoken for potentially lower costs - see Google Docs
+    )
+
+    # --- Call Google API and Handle Response ---
+    try:
+        # Make the request to Google's API, add a timeout
+        response = requests.get(google_api_url, timeout=10)
+        # Raise an exception for bad status codes (4xx or 5xx)
+        response.raise_for_status()
+
+        data = response.json() # Parse the JSON response from Google
+
+        # Check the status returned by Google
+        if data['status'] == 'OK':
+            # Format the predictions into a simpler list for the frontend
+            suggestions = [
+                {
+                    "description": prediction.get('description', ''), # The text to display
+                    "place_id": prediction.get('place_id', '') # ID to potentially fetch details later
+                }
+                for prediction in data.get('predictions', [])
+            ]
+            return jsonify(suggestions)
+
+        elif data['status'] == 'ZERO_RESULTS':
+            # It's valid that there are no results, return empty list
+            return jsonify([])
+        else:
+            # Log other Google API errors (e.g., REQUEST_DENIED, INVALID_REQUEST)
+            error_message = data.get('error_message', 'No error message provided')
+            print(f"Google Places API Error ({data['status']}): {error_message}", flush=True)
+            return jsonify({"error": f"Google API Error: {data['status']}"}), 502 # Bad Gateway
+
+    except requests.exceptions.Timeout:
+        print(f"Request to Google Places API timed out for query: '{query}'", flush=True)
+        return jsonify({"error": "Address lookup timed out"}), 504 # Gateway Timeout
+    except requests.exceptions.RequestException as e:
+        # Handle network errors, bad status codes, etc.
+        print(f"Error calling Google Places API: {e}", flush=True)
+        return jsonify({"error": "Failed to fetch address suggestions"}), 500
+    except Exception as e:
+        # Catch any other unexpected errors during processing
+        print(f"Unexpected error in /api/address-suggestions: {e}", flush=True)
+        return jsonify({"error": "Internal server error"}), 500
 
 @app.route("/maps")
 def maps():
