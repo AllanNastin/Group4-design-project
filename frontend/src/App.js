@@ -17,7 +17,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/search" element={<RequireAuth><Search/></RequireAuth>} />
           <Route path="/listings" element={<RequireAuth><Listings/></RequireAuth>} />
-          <Route path="/listing/:id/:commute" element={<RequireAuth><IndividualListings /></RequireAuth>} />
+          <Route path="/listing/:id/:car/:walk/:cycling/:publicTransport/:commute" element={<RequireAuth><IndividualListings /></RequireAuth>} />
           <Route path="/saved-listings" element={<SavedListings />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

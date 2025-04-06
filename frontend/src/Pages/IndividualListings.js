@@ -4,17 +4,21 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import axios from 'axios';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const IndividualListings = () => {
-  const { id, commute } = useParams();
+  const { id, car, walk, cycling, publicTransport, commute } = useParams();
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const { state } = useLocation();
+  const apiUrl = process.env.REACT_APP_API_URL;
+
+
 
   useEffect(() => {
     if (!id) {
@@ -22,6 +26,26 @@ const IndividualListings = () => {
       setLoading(false);
       return;
     }
+    console.log(state);
+    const getListing = async () => {
+      try{
+        const response = await axios.get(`${apiUrl}/getListing`, {
+          params: {
+            listing_id: id
+          }
+        });
+        console.log(response);
+        if (response.status === 200){
+          setListing(response.data);
+          setLoading(false);
+        }
+        else {
+          setError(`(${response.status}) Error loading listing`);
+        }
+      } catch (error) {
+        setError(error);
+      }
+    };
 
     if (state && state.listing) {
       const listingData = state.listing;
@@ -34,8 +58,7 @@ const IndividualListings = () => {
       sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
       setIsSaved(savedListings.some(savedItem => savedItem.listing_id === parseInt(id)));
     } else {
-      setError(`Listing data is not available.`);
-      setLoading(false);
+      getListing();
     }
   }, [id, commute, state, navigate]);
 
@@ -45,6 +68,8 @@ const IndividualListings = () => {
       const isListingSaved = savedListings.some(savedItem => savedItem.listing_id === parseInt(id));
       setIsSaved(isListingSaved);
     }
+
+    console.log(listing);
   }, [listing, id]);
 
   const saveListingData = (listingToSave) => {
@@ -125,7 +150,7 @@ const IndividualListings = () => {
 
               <Row>
                 <Col md={6}>
-                  <h4 className="fw-bold text-primary">€{listing.price.toLocaleString()}</h4>
+                  <h4 className="fw-bold text-primary">{listing.price ? `€${listing.price.toLocaleString()}` : 'N/A'}</h4>
                   <ListGroup variant="flush" className="mb-3">
                     <ListGroup.Item><strong>Bedrooms:</strong> {listing.bedrooms}</ListGroup.Item>
                     <ListGroup.Item><strong>Bathrooms:</strong> {listing.bathrooms}</ListGroup.Item>
@@ -135,10 +160,10 @@ const IndividualListings = () => {
                 <Col md={6}>
                   <h5 className="fw-bold">Commute Times:</h5>
                   <ListGroup variant="flush">
-                    <ListGroup.Item>🚗 By Car: {listing.commute_times?.car} min</ListGroup.Item>
-                    <ListGroup.Item>🚶‍ By Walk: {listing.commute_times?.walk} min</ListGroup.Item>
-                    <ListGroup.Item>🚲 By Cycling: {listing.commute_times?.cycling} min</ListGroup.Item>
-                    <ListGroup.Item>🚌 By Public Transport: {listing.commute_times?.public} min</ListGroup.Item>
+                    <ListGroup.Item>🚗 By Car: {car} min</ListGroup.Item>
+                    <ListGroup.Item>🚶‍ By Walk: {walk} min</ListGroup.Item>
+                    <ListGroup.Item>🚲 By Cycling: {cycling} min</ListGroup.Item>
+                    <ListGroup.Item>🚌 By Public Transport: {publicTransport} min</ListGroup.Item>
                   </ListGroup>
                 </Col>
               </Row>

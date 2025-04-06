@@ -57,7 +57,13 @@ const ListingsParser = () => {
 
     const handleListingClick = (listing) => {
         const payload = state.payload;
-        navigate(`/listing/${listing.listing_id}/${payload.commute}`, {
+        let commute_params = "";
+        commute_params += listing.commute_times.car ? `/${listing.commute_times.car}` : "/non";
+        commute_params += listing.commute_times.walk ? `/${listing.commute_times.walk}` : "/non";
+        commute_params += listing.commute_times.cycling ? `/${listing.commute_times.cycling}` : "/non";
+        commute_params += listing.commute_times.public ? `/${listing.commute_times.public}` : "/non";
+        console.log(commute_params);
+        navigate(`/listing/${listing.listing_id}${commute_params}/${payload.commute}`, {
             state: { listing: listing, commute: payload.commute, listingsData: listingsData },
         });
     };

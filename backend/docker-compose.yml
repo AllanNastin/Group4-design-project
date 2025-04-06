@@ -2,8 +2,8 @@ version: "3.8"
 
 services:
   server:
-    #build: . # local image
-    image: ghcr.io/allannastin/gdp4-backend:dev
+    build: . # local image
+    #image: ghcr.io/allannastin/gdp4-backend:dev
 
     ports:
       - "5300:5300"
@@ -23,8 +23,8 @@ services:
       - .:/app
  
   db:
-    #build: ./db # local image
-    image: ghcr.io/allannastin/gdp4-db:dev
+    build: ./db # local image
+    #image: ghcr.io/allannastin/gdp4-db:dev
 
     restart: always
     env_file:
