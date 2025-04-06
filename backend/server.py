@@ -209,19 +209,26 @@ def getListing():
             images = cursor.fetchall()
             print(f"Listing: {listing}", flush=True)  # Debug print
 
-            cursor.execute("""
-                SELECT Price
-                FROM daftListing.PropertyPriceHistory 
-                WHERE PropertyId = %s;
-            """, (listing_id,))
-            price_history = cursor.fetchall()
+            price_history = []
+            price_dates = []
 
             cursor.execute("""
-                SELECT Timestamp
+                SELECT Price, Timestamp 
                 FROM daftListing.PropertyPriceHistory 
-                WHERE PropertyId = %s;
-            """, (listing_id,))
-            price_dates = cursor.fetchall()
+                WHERE PropertyId = %s
+                ORDER BY Timestamp ASC;
+            """, (listing[0],))
+
+            results = cursor.fetchall()
+
+            if results:
+                # Use zip(*results) to transpose the list of tuples 
+                # It creates two tuples: one with all prices, one with all timestamps
+                raw_prices, raw_dates = zip(*results) 
+                    
+                # Convert the tuple of prices into a list
+                price_history = list(raw_prices)
+                price_dates = [d.strftime('%d/%m/%Y') for d in raw_dates]
 
             jsonEntry = {
                 "listing_id": listing[0],

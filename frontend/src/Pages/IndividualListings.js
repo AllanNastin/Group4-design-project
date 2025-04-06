@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Container, Row, Col, Card, Button, ListGroup } from "react-bootstrap";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Line } from "react-chartjs-2";
@@ -16,6 +16,18 @@ const IndividualListings = () => {
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const { state } = useLocation();
+  const chartRef = useRef(null);
+  const [data, setData] = useState({
+    labels: [],
+    datasets: [
+      {
+        label: 'Price History',
+        data: [],
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+      },
+    ],
+  });
   const apiUrl = process.env.REACT_APP_API_URL;
 
 
@@ -26,7 +38,7 @@ const IndividualListings = () => {
       setLoading(false);
       return;
     }
-    console.log(state);
+    
     const getListing = async () => {
       try{
         const response = await axios.get(`${apiUrl}/getListing`, {
@@ -34,7 +46,7 @@ const IndividualListings = () => {
             listing_id: id
           }
         });
-        console.log(response);
+        
         if (response.status === 200){
           setListing(response.data);
           setLoading(false);
@@ -67,10 +79,39 @@ const IndividualListings = () => {
       const savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
       const isListingSaved = savedListings.some(savedItem => savedItem.listing_id === parseInt(id));
       setIsSaved(isListingSaved);
+      console.log(listing);
+      setData({
+        labels: [...listing.price_dates],
+        datasets: [
+          {
+            label: 'Price History',
+            data: [...listing.price_history],
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          },
+        ],
+      });
+      console.log({
+        labels: [...listing.price_dates],
+        datasets: [
+          {
+            label: 'Price History',
+            data: [...listing.price_history],
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          },
+        ],
+      });
     }
 
-    console.log(listing);
   }, [listing, id]);
+
+  useEffect(() => {
+    console.log(data);
+    if (chartRef.current) {
+      chartRef.current.update();
+    }
+  }, [data]);
 
   const saveListingData = (listingToSave) => {
     return {
@@ -113,18 +154,6 @@ const IndividualListings = () => {
   if (loading) return <p className="text-center mt-5">Loading listing details...</p>;
   if (error) return <p className="text-danger text-center mt-5">{error}</p>;
   if (!listing) return <p className="text-center mt-5">No listing found.</p>;
-
-  const data = {
-    labels: listing.price_dates,
-    datasets: [
-      {
-        label: 'Price History',
-        data: listing.price_history,
-        borderColor: 'rgba(75, 192, 192, 1)',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-      },
-    ],
-  };
 
   const handleBackClick = () => {
     navigate(-1); // Navigate back to the previous page for purpose of saved listings
@@ -180,7 +209,7 @@ const IndividualListings = () => {
 
               <hr />
               <h5 className="fw-bold text-center">Price History</h5>
-              <Line data={data} />
+              <Line ref={chartRef} data={data} />
             </Card.Body>
           </Card>
         </Col>
