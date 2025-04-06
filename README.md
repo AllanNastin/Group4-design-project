@@ -43,7 +43,7 @@ For the recommended deployment (docker), make sure you have Docker installed on 
 - npm
   - from root directory, navigate to frontend directory `cd frontend`
   - install dependencies using `npm i`
-  - run frontend using `npm run`
+  - run frontend using `npm start`
   - this should open a new tab in your browser with the frontend running on `localhost:3000`
   - in `frontend\.env` the server url is set to `http://localhost:5300` by default, if you are running the backend on a different port, make sure to change this in the frontend `frontend\.env` file.
 
