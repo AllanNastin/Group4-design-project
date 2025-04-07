@@ -390,6 +390,70 @@ def getListings():
         print(f"Error from mysql connector: {e}")
         return jsonify({"error": f"{e}"}), 500
 
+@app.route("/getPriceHistoryForArea", methods=['GET'])
+def getPriceHistoryForArea():
+    load_dotenv()
+    #TODO: get params
+    eircode = request.args.get('location')
+    try:
+        conn = mysql.connector.connect(
+            host=os.getenv('DATABASE_HOST'),
+            port=os.getenv('DATABASE_PORT'),
+            user=os.getenv('DATABASE_USER'),
+            password=os.getenv('DATABASE_PASSWORD'),
+            database=os.getenv('DATABASE_NAME')
+        )
+        with conn.cursor() as cursor:
+            sql_query = """
+            SELECT 
+                pd.Id,
+                pd.Address,
+                pd.Eircode,
+                pd.Size,
+                pph.Price,
+                pph.Timestamp,
+                pd.ForSale,
+                ROUND(pph.Price / pd.Size, 2) AS PricePerSqFt
+            FROM PropertyDetails pd
+            JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
+            WHERE 
+                pd.Eircode LIKE %s
+                AND pd.ForSale = %s
+                AND pd.Size IS NOT NULL
+            ORDER BY pph.Timestamp, pd.Id;
+            """
+            params = [f"{eircode}%", 1]
+            cursor.execute(sql_query, tuple(params))
+            results = cursor.fetchall()
+            
+            toReturn = {
+                "total_results": 0,
+                "datapoints": []
+            }
+
+            current_date = results[0][5].date()
+            current_sum_size = 0
+            current_sum_price = 0
+            for listing in results:
+                date = listing[5].date()
+                if current_date == date:
+                    current_sum_price += listing[4]
+                    current_sum_size += listing[3]
+                else:
+                    jsonEntry = {
+                        "date": current_date,
+                        "price_per_size": current_sum_price // current_sum_size
+                    }
+                    toReturn["datapoints"].append(jsonEntry)
+                    toReturn["total_results"] += 1
+                    current_date = date
+                    current_sum_size = listing[3]
+                    current_sum_price = listing[4]
+        conn.close()
+        return jsonify(toReturn)
+    except mysql.connector.Error as e:
+        print(f"Error from mysql connector: {e}")
+        return jsonify({"error": f"{e}"}), 500
 
 def initScrap():
     load_dotenv()
