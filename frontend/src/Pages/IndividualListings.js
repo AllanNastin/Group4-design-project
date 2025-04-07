@@ -130,7 +130,10 @@ const IndividualListings = () => {
 
               <Row>
                 <Col md={6}>
-                  <h4 className="fw-bold text-primary">€{listing.price.toLocaleString()}</h4>
+                  <h4 className="fw-bold text-primary">
+                    {listing.price === -1 ? "Unavailable " : `€${listing.price.toLocaleString()} `}
+                  </h4>
+
                   <ListGroup variant="flush" className="mb-3">
                     <ListGroup.Item><strong>Bedrooms:</strong> {listing.bedrooms}</ListGroup.Item>
                     <ListGroup.Item><strong>Bathrooms:</strong> {listing.bathrooms}</ListGroup.Item>
