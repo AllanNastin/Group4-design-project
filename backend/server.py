@@ -248,6 +248,10 @@ def getListings():
     # ignore default values
     defaultParams = ["Min", "Max", "Any", ""]
     try:
+        try:
+            page = int(request.args.get('page'))
+        except:
+            page = 1
         listing_type = request.args.get('type')
         location = request.args.get('location')
         commute = request.args.get('commute')
@@ -269,11 +273,12 @@ def getListings():
         print("Size Max:", request.args.get('size-max'))
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
-    ForSaleValue = 1
 
     if listing_type == "rent":
         ForSaleValue = 0
-    
+    else:
+        ForSaleValue = 1
+
     try:
         response = {
             "total_results": 0,
@@ -360,7 +365,10 @@ def getListings():
                 params.append(sizeMax)
             
             # Limit the number of results to 30
-            sql_query += listing_return_limit
+            sql_query += " LIMIT %s OFFSET %s"
+            params.append(30)
+            offset = (page - 1) * 30
+            params.append(offset)
 
             cursor.execute(sql_query, tuple(params))
             results = cursor.fetchall()
