@@ -37,7 +37,7 @@ const RecommendedListings = () => {
     }, [apiUrl]);
 
     const handleClick = (listing) => {
-        navigate(`/listing/${listing.listing_id}/car`, {
+        navigate(`/listing/${listing.listing_id}/recommended`, {
             state: { listing },
         });
     };
@@ -89,9 +89,7 @@ const RecommendedListings = () => {
                                     <Card.Title className="fs-5">{listing.address}</Card.Title>
                                     <Card.Text>
                                         <strong>Price:</strong>{" "}
-                                        {listing.price
-                                            ? `€${listing.price.toLocaleString()}`
-                                            : "N/A"}
+                                        {listing.price ? `€${listing.price.toLocaleString()}` : "N/A"}
                                         <br />
                                         <strong>Bedrooms:</strong> {listing.bedrooms ?? "N/A"} |{" "}
                                         <strong>Bathrooms:</strong> {listing.bathrooms ?? "N/A"}
@@ -99,8 +97,8 @@ const RecommendedListings = () => {
                                         <strong>Size:</strong>{" "}
                                         {listing.size ? `${listing.size} sq ft` : "N/A"}
                                         <br />
-
                                     </Card.Text>
+
                                     <Button variant="primary" onClick={() => handleClick(listing)}>
                                         View Details
                                     </Button>
