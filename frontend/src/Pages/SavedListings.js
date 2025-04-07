@@ -44,7 +44,7 @@ const SavedListings = () => {
               <Card.Body>
                 <Card.Title className="fs-5">{listing.address}</Card.Title>
                 <Card.Text>
-                    <strong>Price:</strong> {listing.price === -1 ? "Unavailable " : `€${listing.price.toLocaleString()} `} <br />
+                    <strong>Price:</strong> {listing.price === -1 ? " Unavailable " : `€${listing.price.toLocaleString()} `} <br />
                     <strong>Bedrooms:</strong> {listing.bedrooms !== null ? listing.bedrooms : 'N/A'} | <strong>Bathrooms:</strong> {listing.bathrooms !== null ? listing.bathrooms : 'N/A'} <br />
                   <strong>Size:</strong> {listing.size !== null ? `${listing.size} sq ft` : 'N/A'} <br />
                     {!isFromRecommended &&
