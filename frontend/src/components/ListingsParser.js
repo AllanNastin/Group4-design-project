@@ -12,6 +12,7 @@ const ListingsParser = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { state } = useLocation();
+    const [commuteVar, setCommuteVar] = useState(null);
     const apiUrl = process.env.REACT_APP_API_URL;
 
     useEffect(() => {
@@ -23,6 +24,7 @@ const ListingsParser = () => {
                 }
                 if (state.listingsData) {
                     setListingsData(state.listingsData);
+                    setCommuteVar(state.commute);
                 } else {
                     const payload = state.payload;
                     const response = await axios.get(`${apiUrl}/getListings`, {
@@ -43,6 +45,7 @@ const ListingsParser = () => {
                     const status = response.status;
                     if (status === 200) {
                         setListingsData(response.data);
+                        setCommuteVar(payload.commute);
                     } else {
                         setError(`(${status}) Error loading listings`);
                     }
@@ -56,9 +59,8 @@ const ListingsParser = () => {
     }, [state, apiUrl, navigate]);
 
     const handleListingClick = (listing) => {
-        const payload = state.payload;
-        navigate(`/listing/${listing.listing_id}/${payload.commute}`, {
-            state: { listing: listing, commute: payload.commute, listingsData: listingsData },
+        navigate(`/listing/${listing.listing_id}/${commuteVar}`, {
+            state: { listing: listing, commute: commuteVar, listingsData: listingsData },
         });
     };
 
