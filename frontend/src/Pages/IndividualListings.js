@@ -105,7 +105,8 @@ const IndividualListings = () => {
   };
 
   const handleBackClick = () => {
-    navigate(-1); // Navigate back to the previous page for purpose of saved listings
+    const listingsData = state.listingsData;
+    navigate("/listings", { state: { listingsData } }); // Navigate back to the previous page for purpose of saved listings
   };
 
   return (
