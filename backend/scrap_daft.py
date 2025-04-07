@@ -81,6 +81,75 @@ def get_property_listings(url):
         })
     return toReturn
 
+def get_eircode_from_address(address, eircode_data):
+    """
+    Attempts to find an Eircode based on keywords in the address.
+    """
+    if address == 'N/A' or address is None:
+        return 'N/A'
+    address_lower = address.lower()
+    for location, eircode in eircode_data.items():
+        if location.lower() in address_lower:
+            return eircode
+    return 'N/A'
+
+def update_eircodes():
+    print("Starting update_eircodes")
+    load_dotenv()
+    conn = None
+    cursor = None
+    try:
+        conn = mysql.connector.connect(
+            host=os.getenv('DATABASE_HOST'),
+            port=os.getenv('DATABASE_PORT'),
+            user=os.getenv('DATABASE_USER'),
+            password=os.getenv('DATABASE_PASSWORD'),
+            database=os.getenv('DATABASE_NAME')
+        )
+        print("Connected to database")
+        with open('Eircodes.json', 'r') as f:
+            eircode_data = json.load(f)
+        print("Loaded Eircode data")
+
+        cursor = conn.cursor()
+        print("Executing query to find listings to update...")
+        cursor.execute("""
+            SELECT Id, Address
+            FROM PropertyDetails
+            WHERE Eircode = 'N/A';
+        """)
+        listings_to_update = cursor.fetchall()
+        print(f"Found {len(listings_to_update)} listings to potentially update")
+
+        for listing_id, address in listings_to_update:
+            print(f"Checking listing ID: {listing_id}, Address: {address}")
+            new_eircode = get_eircode_from_address(address, eircode_data)
+            if new_eircode != 'N/A':
+                print(f"Found Eircode '{new_eircode}' for listing ID {listing_id}, updating...")
+                cursor.execute("""
+                    UPDATE PropertyDetails SET Eircode = %s WHERE Id = %s;
+                """, (new_eircode, listing_id))
+                conn.commit()
+                print(f"Successfully updated Eircode for listing ID {listing_id} to {new_eircode}")
+            else:
+                print(f"Could not find Eircode for listing ID {listing_id} with address: {address}")
+
+    except mysql.connector.Error as e:
+        print(f"Error from mysql connector: {e}")
+    except FileNotFoundError as e:
+        print(f"Error loading Eircodes.json: {e}")
+    except json.JSONDecodeError as e:
+        print(f"Error decoding Eircodes.json: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+    finally:
+        if cursor:
+            cursor.close()
+        if conn and conn.is_connected():
+            conn.close()
+            print("Closed database connection")
+    print("Finished update_eircodes")
+
 def daft_rent_scrap():
     load_dotenv()
     try:
@@ -186,6 +255,7 @@ def daft_sale_scrap():
 def scrap():
     daft_rent_scrap()
     daft_sale_scrap()
+    update_eircodes()
 
 def daft_scraper_json(start_page=0, end_page=1, eircode=None, listing_type='for-sale'):
     all_listings = []

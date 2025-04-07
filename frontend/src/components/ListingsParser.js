@@ -123,7 +123,7 @@ const ListingsParser = () => {
                                         <strong>Price:</strong> {listing.price === -1 ? "Unavailable " : `€${listing.price.toLocaleString()} `}
                                         <strong>Bedrooms:</strong> {listing.bedrooms ?? 'N/A'} | <strong>Bathrooms:</strong> {listing.bathrooms ?? 'N/A'} <br />
                                         <strong>Size:</strong> {listing.size ? `${listing.size} sq ft` : 'N/A'} <br />
-                                        🚗 {listing.commute_times?.car} min | 🚶 {listing.commute_times?.walk} min
+                                        🚗 {listing.commute_times?.car} min | 🚶 {listing.commute_times?.walk} min | 🚲 {listing.commute_times?.cycling} min | 🚌 {listing.commute_times?.public} min
                                     </Card.Text>
                                     <Button variant="primary" onClick={() => handleListingClick(listing)}>
                                         View Details

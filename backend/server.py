@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
+import requests
 import json
 from maps import get_distance_and_times
 import scrap_daft
@@ -9,9 +10,12 @@ import os
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 import time
+from urllib.parse import quote_plus
 import datetime
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, JWTManager
+
+listing_return_limit=" LIMIT 30"
 
 load_dotenv()
 google_api_key = os.getenv("GOOGLE_API_KEY")
@@ -41,7 +45,7 @@ scheduler.add_job(scheduled_scrap, 'cron', hour=17, minute=30)
 def register():
     data = request.json
     hashed_password = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
-    
+
     try:
         conn = mysql.connector.connect(
             host=os.getenv('DATABASE_HOST'),
@@ -91,12 +95,88 @@ def login():
 def main():
     return jsonify({"data": "hello world"})
 
+@app.route('/address-suggestions', methods=['GET'])
+def address_suggestions():
+    """
+    Provides address suggestions based on user input using Google Places Autocomplete API.
+    """
+    query = request.args.get('query')
+    # Restrict results to Ireland (using ISO 3166-1 Alpha-2 country code)
+    # This significantly improves relevance for your context.
+    country_restriction = "ie"
+
+    # --- Basic Input Validation ---
+    if not query or len(query) < 2: # Require at least 2 characters
+        return jsonify([]) # Return empty list if query is too short or missing
+
+    # --- Check if API Key is loaded ---
+    if not google_api_key:
+        print("ERROR: GOOGLE_API_KEY environment variable not set.", flush=True)
+        # Avoid exposing details, just log it server-side
+        return jsonify({"error": "Server configuration issue"}), 500
+
+    # --- Construct Google Places API URL ---
+    # URL encode the user's query to handle spaces and special characters
+    encoded_query = quote_plus(query)
+
+    # Documentation: developers.google.com/maps/documentation/places/web-service/autocomplete
+    google_api_url = (
+        f"https://maps.googleapis.com/maps/api/place/autocomplete/json?"
+        f"input={encoded_query}"
+        f"&key={google_api_key}"
+        # f"&types=address"  # Restrict results to addresses only
+        f"&components=country:{country_restriction}" # Strongly recommended: restrict to Ireland
+        # Optional: Add sessiontoken for potentially lower costs - see Google Docs
+    )
+
+    # --- Call Google API and Handle Response ---
+    try:
+        # Make the request to Google's API, add a timeout
+        response = requests.get(google_api_url, timeout=10)
+        # Raise an exception for bad status codes (4xx or 5xx)
+        response.raise_for_status()
+
+        data = response.json() # Parse the JSON response from Google
+
+        # Check the status returned by Google
+        if data['status'] == 'OK':
+            # Format the predictions into a simpler list for the frontend
+            suggestions = [
+                {
+                    "description": prediction.get('description', ''), # The text to display
+                    "place_id": prediction.get('place_id', '') # ID to potentially fetch details later
+                }
+                for prediction in data.get('predictions', [])
+            ]
+            return jsonify(suggestions)
+
+        elif data['status'] == 'ZERO_RESULTS':
+            # It's valid that there are no results, return empty list
+            return jsonify([])
+        else:
+            # Log other Google API errors (e.g., REQUEST_DENIED, INVALID_REQUEST)
+            error_message = data.get('error_message', 'No error message provided')
+            print(f"Google Places API Error ({data['status']}): {error_message}", flush=True)
+            return jsonify({"error": f"Google API Error: {data['status']}"}), 502 # Bad Gateway
+
+    except requests.exceptions.Timeout:
+        print(f"Request to Google Places API timed out for query: '{query}'", flush=True)
+        return jsonify({"error": "Address lookup timed out"}), 504 # Gateway Timeout
+    except requests.exceptions.RequestException as e:
+        # Handle network errors, bad status codes, etc.
+        print(f"Error calling Google Places API: {e}", flush=True)
+        return jsonify({"error": "Failed to fetch address suggestions"}), 500
+    except Exception as e:
+        # Catch any other unexpected errors during processing
+        print(f"Unexpected error in /api/address-suggestions: {e}", flush=True)
+        return jsonify({"error": "Internal server error"}), 500
+
 @app.route("/maps")
 def maps():
     origin = request.args.get('origin')
     dest = request.args.get('dest')
-    dist, drive, walk = get_distance_and_times(origin, dest, google_api_key)
-    return jsonify({"distance": dist, "drive_time": drive, "walk_time": walk})
+    dist, drive, walk, public, cycling = get_distance_and_times(origin, dest, google_api_key)
+    return jsonify({"distance": dist, "drive_time": drive, "walk_time": walk, "public_time": public, "cycling_time": cycling})
 
 @app.route("/getListing", methods=['GET'])
 def getListing():
@@ -239,6 +319,10 @@ def getListings():
             if sizeMax != None:
                 sql_query += " AND pd.Size <= %s"
                 params.append(sizeMax)
+            
+            # Limit the number of results to 30
+            sql_query += listing_return_limit
+
             cursor.execute(sql_query, tuple(params))
             results = cursor.fetchall()
             response["total_results"] = len(results)
@@ -252,30 +336,36 @@ def getListings():
                 """, (listing[0],))
                 images = cursor.fetchall()
                 # print(f"Listing: {listing}", flush=True)  # Debug print
-                distance, car_time, walk_time = 0,0,0
-                if ForSaleValue:
-                    listing_location = eircode_map.get(location.upper(), location) # Translate Eircode to location name
-                    if listing_location == location.upper():
-                        listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
-                    # print(f"Listing location: {listing_location}", flush=True)  # Debug print
-                    distance, car_time, walk_time = get_distance_and_times(listing_location, listing[1], google_api_key)
+                listing_location = eircode_map.get(location.upper(), location) # Translate Eircode to location name
+                if listing_location == location.upper():
+                    listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
+                # print(f"Listing location: {listing_location}", flush=True)  # Debug print
+                distance, car_time, walk_time, public_time, cycling_time = get_distance_and_times(listing_location, commute, google_api_key)
+
+                price_history = []
+                price_dates = []
 
                 cursor.execute("""
-                    SELECT Price
+                    SELECT Price, Timestamp 
                     FROM daftListing.PropertyPriceHistory 
-                    WHERE PropertyId = %s;
+                    WHERE PropertyId = %s
+                    ORDER BY Timestamp ASC;
                 """, (listing[0],))
-                price_history = cursor.fetchall()
 
-                cursor.execute("""
-                    SELECT Timestamp
-                    FROM daftListing.PropertyPriceHistory 
-                    WHERE PropertyId = %s;
-                """, (listing[0],))
-                price_dates = cursor.fetchall()
+                results = cursor.fetchall()
+
+                if results:
+                    # Use zip(*results) to transpose the list of tuples 
+                    # It creates two tuples: one with all prices, one with all timestamps
+                    raw_prices, raw_dates = zip(*results) 
+                    
+                    # Convert the tuple of prices into a list
+                    price_history = list(raw_prices)
+                    price_dates = [d.strftime('%d/%m/%Y') for d in raw_dates]
 
                 jsonEntry = {
                     "listing_id": listing[0],
+                    "url": listing[6],
                     "address": listing[1],
                     "eircode": listing[2],
                     "bedrooms": listing[3],
@@ -286,7 +376,9 @@ def getListings():
                     "distance": distance,
                     "commute_times": {
                         "car": str(car_time),
-                        "walk": str(walk_time)
+                        "walk": str(walk_time),
+                        "public": str(public_time),
+                        "cycling": str(cycling_time),
                     },
                 "price_history": price_history,
                     "price_dates": price_dates,
