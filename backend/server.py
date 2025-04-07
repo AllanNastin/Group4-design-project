@@ -365,6 +365,7 @@ def getListings():
 
                 jsonEntry = {
                     "listing_id": listing[0],
+                    "url": listing[6],
                     "address": listing[1],
                     "eircode": listing[2],
                     "bedrooms": listing[3],

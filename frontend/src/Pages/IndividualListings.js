@@ -62,6 +62,7 @@ const IndividualListings = () => {
       price_dates: listingToSave.price_dates,
       price_history: listingToSave.price_history,
       commute: commute, // Include commute from URL
+      url: listingToSave.url,
     };
   };
 
@@ -150,7 +151,12 @@ const IndividualListings = () => {
                 <Button variant="secondary" onClick={handleBackClick}>
                   ← Back
                 </Button>
-                <Button variant="success">Contact Landlord</Button>
+                <Button 
+                  variant="success" 
+                  onClick={() => window.open(`https://www.daft.ie${listing.url}`, '_blank')}
+                >
+                  Go To Listing
+                </Button>
               </div>
 
               <hr />
