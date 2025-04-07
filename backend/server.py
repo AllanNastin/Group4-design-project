@@ -287,6 +287,45 @@ def getListings():
             database=os.getenv('DATABASE_NAME')
         )
         with conn.cursor() as cursor:
+            # --- Counting Query ---
+            count_query = """
+                SELECT COUNT(*)
+                FROM PropertyDetails pd
+                JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
+                WHERE pph.Timestamp = (
+                    SELECT MAX(Timestamp) FROM PropertyPriceHistory WHERE Timestamp >= NOW() - INTERVAL 1 DAY AND PropertyId = pd.Id 
+                )
+                AND pd.ForSale = %s
+            """
+            params = [ForSaleValue]
+            if location is not None:
+                if len(location) == 3:
+                    count_query += " AND pd.Eircode LIKE %s"
+                    params.append(f"{location}%")
+            if priceMin != None:
+                count_query += " AND pph.Price >= %s"
+                params.append(priceMin)
+            if priceMax != None:
+                count_query += " AND pph.Price <= %s"
+                params.append(priceMax)
+            if beds != None:
+                count_query += " AND pd.Bed >= %s"
+                params.append(beds)
+            if baths != None:
+                count_query += " AND pd.Bath >= %s"
+                params.append(baths)
+            if sizeMin != None:
+                count_query += " AND pd.Size >= %s"
+                params.append(sizeMin)
+            if sizeMax != None:
+                count_query += " AND pd.Size <= %s"
+                params.append(sizeMax)
+
+            cursor.execute(count_query, tuple(params))
+            total_count = cursor.fetchone()[0]
+            response["total_results"] = total_count
+
+            # --- Main Query (with LIMIT) ---
             sql_query = """
                 SELECT pd.*, pph.Price
                 FROM PropertyDetails pd
@@ -325,7 +364,6 @@ def getListings():
 
             cursor.execute(sql_query, tuple(params))
             results = cursor.fetchall()
-            response["total_results"] = len(results)
 
             print(f"Total results: {len(results)}", flush=True)  # Debug print
             # fetch pics from the filtered results
