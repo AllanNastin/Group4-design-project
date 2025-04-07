@@ -9,7 +9,11 @@ import axios from 'axios';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const IndividualListings = () => {
-  const { id, car, walk, cycling, publicTransport, commute } = useParams();
+  const { id, carParam, walkParam, cyclingParam, publicTransportParam, commute } = useParams();
+  const car = carParam !== "non" ? carParam : null;
+  const walk = walkParam !== "non" ? walkParam : null;
+  const cycling = cyclingParam !== "non" ? cyclingParam : null;
+  const publicTransport = publicTransportParam !== "non" ? publicTransportParam : null;
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [error, setError] = useState(null);
@@ -30,7 +34,9 @@ const IndividualListings = () => {
   });
   const apiUrl = process.env.REACT_APP_API_URL;
 
-
+  console.log(id);
+  console.log(carParam);
+  console.log(car);
 
   useEffect(() => {
     if (!id) {
@@ -38,16 +44,16 @@ const IndividualListings = () => {
       setLoading(false);
       return;
     }
-    
+
     const getListing = async () => {
-      try{
+      try {
         const response = await axios.get(`${apiUrl}/getListing`, {
           params: {
             listing_id: id
           }
         });
-        
-        if (response.status === 200){
+
+        if (response.status === 200) {
           setListing(response.data);
           setLoading(false);
         }
@@ -187,13 +193,17 @@ const IndividualListings = () => {
                   </ListGroup>
                 </Col>
                 <Col md={6}>
-                  <h5 className="fw-bold">Commute Times:</h5>
-                  <ListGroup variant="flush">
-                    <ListGroup.Item>🚗 By Car: {car} min</ListGroup.Item>
-                    <ListGroup.Item>🚶‍ By Walk: {walk} min</ListGroup.Item>
-                    <ListGroup.Item>🚲 By Cycling: {cycling} min</ListGroup.Item>
-                    <ListGroup.Item>🚌 By Public Transport: {publicTransport} min</ListGroup.Item>
-                  </ListGroup>
+                  {(car || walk || cycling || publicTransport) &&
+                    <div>
+                      <h5 className="fw-bold">Commute Times:</h5>
+                      <ListGroup variant="flush">
+                        {car && <ListGroup.Item>🚗 By Car: {car} min</ListGroup.Item>}
+                        {walk && <ListGroup.Item>🚶‍ By Walk: {walk} min</ListGroup.Item>}
+                        {cycling && <ListGroup.Item>🚲 By Cycling: {cycling} min</ListGroup.Item>}
+                        {publicTransport && <ListGroup.Item>🚌 By Public Transport: {publicTransport} min</ListGroup.Item>}
+                      </ListGroup>
+                    </div>
+                  }
                 </Col>
               </Row>
 
