@@ -15,6 +15,8 @@ const IndividualListings = () => {
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const { state } = useLocation();
+  const location = useLocation();
+  const isFromRecommended = location.pathname.includes("recommended");
 
   useEffect(() => {
     if (!id) {
@@ -133,6 +135,7 @@ const IndividualListings = () => {
                     <ListGroup.Item><strong>Size:</strong> {listing.size} sq ft</ListGroup.Item>
                   </ListGroup>
                 </Col>
+                {!isFromRecommended && (
                 <Col md={6}>
                   <h5 className="fw-bold">Commute Times:</h5>
                   <ListGroup variant="flush">
@@ -142,6 +145,7 @@ const IndividualListings = () => {
                     <ListGroup.Item>🚌 By Public Transport: {listing.commute_times?.public} min</ListGroup.Item>
                   </ListGroup>
                 </Col>
+                    )}
               </Row>
 
               <hr />
