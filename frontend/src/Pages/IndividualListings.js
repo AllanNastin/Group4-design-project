@@ -28,23 +28,6 @@ const IndividualListings = () => {
     if (state && state.listing) {
       const listingData = state.listing;
 
-      if (!listingData.price_history || !listingData.price_dates) {
-        const mockPriceHistory = [listingData.price];
-        const mockPriceDates = [new Date().toISOString().split('T')[0]];
-        const basePrice = listingData.price;
-        const currentDate = new Date();
-
-        for (let i = 1; i < 10; i++) {
-          mockPriceHistory.push(basePrice + (Math.random() * 2000 - 1000));
-          const date = new Date(currentDate);
-          date.setMonth(currentDate.getMonth() - i);
-          mockPriceDates.push(date.toISOString().split('T')[0]);
-        }
-
-        listingData.price_history = mockPriceHistory.reverse();
-        listingData.price_dates = mockPriceDates.reverse();
-      }
-
       setListing(listingData);
       setLoading(false);
 
@@ -81,6 +64,7 @@ const IndividualListings = () => {
       price_dates: listingToSave.price_dates,
       price_history: listingToSave.price_history,
       commute: commute, // Include commute from URL
+      url: listingToSave.url,
     };
   };
 
@@ -157,6 +141,8 @@ const IndividualListings = () => {
                   <ListGroup variant="flush">
                     <ListGroup.Item>🚗 By Car: {listing.commute_times?.car} min</ListGroup.Item>
                     <ListGroup.Item>🚶‍ By Walk: {listing.commute_times?.walk} min</ListGroup.Item>
+                    <ListGroup.Item>🚲 By Cycling: {listing.commute_times?.cycling} min</ListGroup.Item>
+                    <ListGroup.Item>🚌 By Public Transport: {listing.commute_times?.public} min</ListGroup.Item>
                   </ListGroup>
                 </Col>
                     )}
@@ -169,7 +155,12 @@ const IndividualListings = () => {
                 <Button variant="secondary" onClick={handleBackClick}>
                   ← Back
                 </Button>
-                <Button variant="success">Contact Landlord</Button>
+                <Button 
+                  variant="success" 
+                  onClick={() => window.open(`https://www.daft.ie${listing.url}`, '_blank')}
+                >
+                  Go To Listing
+                </Button>
               </div>
 
               <hr />
