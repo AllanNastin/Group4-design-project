@@ -34,10 +34,6 @@ const IndividualListings = () => {
   });
   const apiUrl = process.env.REACT_APP_API_URL;
 
-  console.log(id);
-  console.log(carParam);
-  console.log(car);
-
   useEffect(() => {
     if (!id) {
       setError(`Listing ID is missing in the URL.`);
