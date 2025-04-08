@@ -149,7 +149,7 @@ const ListingsParser = () => {
                 ))}
             </Row>
             {listingsData.listings.length > 0 && totalPages > 1 && ( // Show buttons only if more than one page
-                <div className="d-flex justify-content-center mt-4 mb-5">
+                <div className="d-flex justify-content-center mt-2">
                     <Button
                         variant="secondary"
                         onClick={() => handlePageChange(currentPage - 1)}
@@ -165,6 +165,23 @@ const ListingsParser = () => {
                     >
                         Next
                     </Button>
+                </div>
+            )}
+            {totalPages > 1 && (
+                <div className="d-flex justify-content-center mt-1 mb-5">
+                    {[...Array(totalPages)].map((_, index) => {
+                        const pageNumber = index + 1;
+                        return (
+                            <Button
+                                key={pageNumber}
+                                variant={pageNumber === currentPage ? "primary" : "outline-secondary"}
+                                className="mx-1"
+                                onClick={() => handlePageChange(pageNumber)}
+                            >
+                                {pageNumber}
+                            </Button>
+                        );
+                    })}
                 </div>
             )}
         </Container>
