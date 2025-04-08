@@ -15,7 +15,7 @@ import datetime
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, JWTManager
 
-listing_return_limit=" LIMIT 30"
+page_limit=12
 
 load_dotenv()
 google_api_key = os.getenv("GOOGLE_API_KEY")
@@ -366,8 +366,8 @@ def getListings():
             
             # Limit the number of results to 30
             sql_query += " LIMIT %s OFFSET %s"
-            params.append(30)
-            offset = (page - 1) * 30
+            params.append(page_limit)
+            offset = (page - 1) * page_limit
             params.append(offset)
 
             cursor.execute(sql_query, tuple(params))

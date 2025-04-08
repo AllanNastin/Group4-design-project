@@ -4,7 +4,7 @@ import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import axios from 'axios';
 import { motion } from "framer-motion";
 
-
+let pageLimit = 12;
 
 const ListingsParser = () => {
     const [listingsData, setListingsData] = useState(null);
@@ -14,9 +14,12 @@ const ListingsParser = () => {
     const { state } = useLocation();
     const [commuteVar, setCommuteVar] = useState(null);
     const apiUrl = process.env.REACT_APP_API_URL;
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
         const getListings = async () => {
+            setLoading(true); // Show loading while fetching new page
             try {
                 if (state === null) {
                     setError(`(State) Error loading listings`);
@@ -38,7 +41,8 @@ const ListingsParser = () => {
                         beds: payload.beds,
                         baths: payload.baths,
                         "size-min": payload["size-min"],
-                        "size-max": payload["size-max"]
+                        "size-max": payload["size-max"],
+                        page: currentPage, // Add page parameter
                       }
                     });
 
@@ -46,6 +50,7 @@ const ListingsParser = () => {
                     if (status === 200) {
                         setListingsData(response.data);
                         setCommuteVar(payload.commute);
+                        setTotalPages(Math.ceil(response.data.total_results / pageLimit)); // Calculate total pages
                     } else {
                         setError(`(${status}) Error loading listings`);
                     }
@@ -53,10 +58,10 @@ const ListingsParser = () => {
             } catch (error) {
                 setError(`Error contacting server`);
             }
-            setLoading(false);
+            setLoading(false); // Hide loading after fetching
         };
         getListings();
-    }, [state, apiUrl, navigate]);
+    }, [state, apiUrl, navigate, currentPage]); // Trigger fetch when currentPage changes
 
     const handleListingClick = (listing) => {
         navigate(`/listing/${listing.listing_id}/${commuteVar}`, {
@@ -66,6 +71,12 @@ const ListingsParser = () => {
 
     const handleBackClick = () => {
         navigate("/search");
+    };
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage); // Update page and trigger fetch
+        }
     };
 
     const [hoveredId, setHoveredId] = useState(null);
@@ -137,7 +148,25 @@ const ListingsParser = () => {
 
                 ))}
             </Row>
-
+            {listingsData.listings.length > 0 && totalPages > 1 && ( // Show buttons only if more than one page
+                <div className="d-flex justify-content-center mt-4 mb-5">
+                    <Button
+                        variant="secondary"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                    >
+                        Previous
+                    </Button>
+                    <span className="mx-3 align-self-center">Page {currentPage} of {totalPages}</span>
+                    <Button
+                        variant="secondary"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                    >
+                        Next
+                    </Button>
+                </div>
+            )}
         </Container>
     );
 };
