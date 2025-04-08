@@ -4,6 +4,7 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { decodeJWT } from "../Utils/UserManagement";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -66,6 +67,10 @@ const IndividualListings = () => {
   };
 
   const handleSaveListing = () => {
+    //TODO: implement save listing by call api
+    const token = localStorage.getItem("google_token");
+    console.log(decodeJWT(token));
+    console.log(new Date(decodeJWT(token).exp * 1000));
     let savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
     savedListings = savedListings.filter(savedItem => savedItem !== null && savedItem !== undefined);
 

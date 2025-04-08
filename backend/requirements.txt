@@ -9,3 +9,5 @@ googlemaps
 Flask-JWT-Extended
 Flask-Bcrypt
 requests
+google-auth
+google-auth-oauthlib

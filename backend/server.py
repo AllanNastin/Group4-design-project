@@ -14,6 +14,9 @@ from urllib.parse import quote_plus
 import datetime
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, JWTManager
+import google.auth
+from google.auth.transport.requests import Request
+from google.oauth2 import id_token
 
 listing_return_limit=" LIMIT 30"
 
@@ -39,6 +42,19 @@ def scheduled_scrap():
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(scheduled_scrap, 'cron', hour=17, minute=30)
+
+def validate_id_token():
+    try:
+        CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
+        id_token_params = request.args.get('id_token')
+        if not id_token_params:
+            return jsonify({"error":"ID token missing"}), 400
+        id_info = id_token.verify_oauth2_token(id_token_params, Request(), CLIENT_ID)
+        print(id_info, flush = True)
+        return id_info
+    except ValueError as e:
+        # If token is invalid, handle the error
+        return None
 
 # register user
 @app.route("/register", methods=["POST"])
@@ -170,6 +186,11 @@ def address_suggestions():
         # Catch any other unexpected errors during processing
         print(f"Unexpected error in /api/address-suggestions: {e}", flush=True)
         return jsonify({"error": "Internal server error"}), 500
+
+@app.route("/saveListing")
+def saveListing():
+    #TODO: implement save listing to database
+    print("test")
 
 @app.route("/maps")
 def maps():
