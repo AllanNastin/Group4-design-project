@@ -171,16 +171,32 @@ const ListingsParser = () => {
                 <div className="d-flex justify-content-center mt-1 mb-5">
                     {[...Array(totalPages)].map((_, index) => {
                         const pageNumber = index + 1;
-                        return (
-                            <Button
-                                key={pageNumber}
-                                variant={pageNumber === currentPage ? "primary" : "outline-secondary"}
-                                className="mx-1"
-                                onClick={() => handlePageChange(pageNumber)}
-                            >
-                                {pageNumber}
-                            </Button>
-                        );
+                        const isStart = pageNumber <= 2; // Always show the first two pages
+                        const isEnd = pageNumber > totalPages - 2; // Always show the last two pages
+                        const isNearCurrent = Math.abs(pageNumber - currentPage) <= 1; // Show pages near the current page
+
+                        if (isStart || isEnd || isNearCurrent) {
+                            return (
+                                <Button
+                                    key={pageNumber}
+                                    variant={pageNumber === currentPage ? "primary" : "outline-secondary"}
+                                    className="mx-1"
+                                    onClick={() => handlePageChange(pageNumber)}
+                                >
+                                    {pageNumber}
+                                </Button>
+                            );
+                        }
+
+                        // Add ellipsis for truncation
+                        if (pageNumber === 3 && currentPage > 4) {
+                            return <span key="start-ellipsis" className="mx-2 align-self-center">...</span>;
+                        }
+                        if (pageNumber === totalPages - 2 && currentPage < totalPages - 3) {
+                            return <span key="end-ellipsis" className="mx-2 align-self-center">...</span>;
+                        }
+
+                        return null;
                     })}
                 </div>
             )}
