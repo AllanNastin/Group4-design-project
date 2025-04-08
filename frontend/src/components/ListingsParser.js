@@ -4,7 +4,7 @@ import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import axios from 'axios';
 import { motion } from "framer-motion";
 
-
+const pageLimit = 12;
 
 const ListingsParser = () => {
     const [listingsData, setListingsData] = useState(null);
@@ -14,9 +14,13 @@ const ListingsParser = () => {
     const { state } = useLocation();
     const [commuteVar, setCommuteVar] = useState(null);
     const apiUrl = process.env.REACT_APP_API_URL;
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [pageInput, setPageInput] = useState(currentPage);
 
     useEffect(() => {
         const getListings = async () => {
+            setLoading(true); // Show loading while fetching new page
             try {
                 if (state === null) {
                     setError(`(State) Error loading listings`);
@@ -38,7 +42,8 @@ const ListingsParser = () => {
                         beds: payload.beds,
                         baths: payload.baths,
                         "size-min": payload["size-min"],
-                        "size-max": payload["size-max"]
+                        "size-max": payload["size-max"],
+                        page: currentPage, // Add page parameter
                       }
                     });
 
@@ -46,6 +51,7 @@ const ListingsParser = () => {
                     if (status === 200) {
                         setListingsData(response.data);
                         setCommuteVar(payload.commute);
+                        setTotalPages(Math.ceil(response.data.total_results / pageLimit)); // Calculate total pages
                     } else {
                         setError(`(${status}) Error loading listings`);
                     }
@@ -53,10 +59,10 @@ const ListingsParser = () => {
             } catch (error) {
                 setError(`Error contacting server`);
             }
-            setLoading(false);
+            setLoading(false); // Hide loading after fetching
         };
         getListings();
-    }, [state, apiUrl, navigate]);
+    }, [state, apiUrl, navigate, currentPage]); // Trigger fetch when currentPage changes
 
     const handleListingClick = (listing) => {
         navigate(`/listing/${listing.listing_id}/${commuteVar}`, {
@@ -66,6 +72,13 @@ const ListingsParser = () => {
 
     const handleBackClick = () => {
         navigate("/search");
+    };
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage); // Update page and trigger fetch
+            setPageInput(newPage); // Sync input with current page
+        }
     };
 
     const [hoveredId, setHoveredId] = useState(null);
@@ -137,7 +150,78 @@ const ListingsParser = () => {
 
                 ))}
             </Row>
+            {listingsData.listings.length > 0 && totalPages > 1 && ( // Show buttons only if more than one page
+                <div className="d-flex justify-content-center mt-2">
+                    <span className="mx-3 align-self-center">
+                        Page{" "}
+                        <input
+                            type="number"
+                            min="1"
+                            max={totalPages}
+                            value={pageInput}
+                            onChange={(e) => setPageInput(e.target.value)}
+                            onBlur={() => {
+                                const newPage = parseInt(pageInput, 10);
+                                if (!isNaN(newPage) && newPage >= 1 && newPage <= totalPages) {
+                                    handlePageChange(newPage);
+                                } else {
+                                    setPageInput(currentPage); // Reset to current page if invalid
+                                }
+                            }}
+                            className="form-control d-inline-block"
+                            style={{ width: "60px", textAlign: "center" }}
+                        />{" "}
+                        of {totalPages}
+                    </span>
+                </div>
+            )}
+            {totalPages > 1 && (
+                <div className="d-flex justify-content-center mt-1 mb-5">
+                    <Button
+                        variant="secondary"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                    >
+                        Previous
+                    </Button>
+                    {[...Array(totalPages)].map((_, index) => {
+                        const pageNumber = index + 1;
+                        const isStart = pageNumber <= 2; // Always show the first two pages
+                        const isEnd = pageNumber > totalPages - 2; // Always show the last two pages
+                        const isNearCurrent = Math.abs(pageNumber - currentPage) <= 1; // Show pages near the current page
 
+                        if (isStart || isEnd || isNearCurrent) {
+                            return (
+                                <Button
+                                    key={pageNumber}
+                                    variant={pageNumber === currentPage ? "primary" : "outline-secondary"}
+                                    className="mx-1"
+                                    onClick={() => handlePageChange(pageNumber)}
+                                >
+                                    {pageNumber}
+                                </Button>
+                            );
+                        }
+
+                        // Add ellipsis for truncation
+                        if (pageNumber === 3 && currentPage > 4) {
+                            return <span key="start-ellipsis" className="mx-2 align-self-center">...</span>;
+                        }
+                        if (pageNumber === totalPages - 2 && currentPage < totalPages - 3) {
+                            return <span key="end-ellipsis" className="mx-2 align-self-center">...</span>;
+                        }
+
+                        return null;
+                    })}
+                    <Button
+                        variant="secondary"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                    >
+                        Next
+                    </Button>
+                </div>
+            )}
         </Container>
     );
 };
