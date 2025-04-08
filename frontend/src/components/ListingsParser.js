@@ -12,6 +12,7 @@ const ListingsParser = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { state } = useLocation();
+    const [commuteVar, setCommuteVar] = useState(null);
     const apiUrl = process.env.REACT_APP_API_URL;
 
     useEffect(() => {
@@ -23,6 +24,7 @@ const ListingsParser = () => {
                 }
                 if (state.listingsData) {
                     setListingsData(state.listingsData);
+                    setCommuteVar(state.commute);
                 } else {
                     const payload = state.payload;
                     const response = await axios.get(`${apiUrl}/getListings`, {
@@ -43,6 +45,7 @@ const ListingsParser = () => {
                     const status = response.status;
                     if (status === 200) {
                         setListingsData(response.data);
+                        setCommuteVar(payload.commute);
                     } else {
                         setError(`(${status}) Error loading listings`);
                     }
@@ -126,7 +129,7 @@ const ListingsParser = () => {
                                 <Card.Body>
                                     <Card.Title className="fs-5">{listing.address}</Card.Title>
                                     <Card.Text>
-                                        <strong>Price:</strong> {listing.price ? `€${listing.price.toLocaleString()}` : 'N/A'} <br />
+                                        <strong>Price:</strong> {listing.price === -1 ? "Unavailable " : `€${listing.price.toLocaleString()} `}
                                         <strong>Bedrooms:</strong> {listing.bedrooms ?? 'N/A'} | <strong>Bathrooms:</strong> {listing.bathrooms ?? 'N/A'} <br />
                                         <strong>Size:</strong> {listing.size ? `${listing.size} sq ft` : 'N/A'} <br />
                                         🚗 {listing.commute_times?.car} min | 🚶 {listing.commute_times?.walk} min | 🚲 {listing.commute_times?.cycling} min | 🚌 {listing.commute_times?.public} min

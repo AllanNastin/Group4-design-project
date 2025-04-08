@@ -2,6 +2,7 @@ import React from "react";
 import SearchForm from "../components/SearchForm";
 import UserProfile from "../components/UserProfile";
 import "../App.css";
+import RecommendedListings from "../components/RecommendedListings";
 
 const Search = () => {
     return (
@@ -26,6 +27,9 @@ const Search = () => {
                 padding: "2rem", width: "80%", margin: "0 auto", animation: "fadeIn 1s ease"
             }}>
                 <SearchForm />
+            </div>
+            <div className="mt-10">
+                <RecommendedListings />
             </div>
         </div>
     );

@@ -20,6 +20,7 @@ const IndividualListings = () => {
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const { state } = useLocation();
+
   const chartRef = useRef(null);
   const [data, setData] = useState({
     labels: [],
@@ -33,6 +34,10 @@ const IndividualListings = () => {
     ],
   });
   const apiUrl = process.env.REACT_APP_API_URL;
+
+  const location = useLocation();
+  const isFromRecommended = location.pathname.includes("recommended");
+
 
   useEffect(() => {
     if (!id) {
@@ -130,6 +135,7 @@ const IndividualListings = () => {
       price_dates: listingToSave.price_dates,
       price_history: listingToSave.price_history,
       commute: commute, // Include commute from URL
+      url: listingToSave.url,
     };
   };
 
@@ -158,7 +164,9 @@ const IndividualListings = () => {
   if (!listing) return <p className="text-center mt-5">No listing found.</p>;
 
   const handleBackClick = () => {
-    navigate(-1); // Navigate back to the previous page for purpose of saved listings
+    const listingsData = state.listingsData;
+    const commute = state.commute;
+    navigate("/listings", { state: { listingsData, commute } }); // Navigate back to the previous page for purpose of saved listings
   };
 
   return (
@@ -181,13 +189,17 @@ const IndividualListings = () => {
 
               <Row>
                 <Col md={6}>
-                  <h4 className="fw-bold text-primary">{listing.price ? `€${listing.price.toLocaleString()}` : 'N/A'}</h4>
+                  <h4 className="fw-bold text-primary">
+                    {listing.price === -1 ? "Unavailable " : `€${listing.price.toLocaleString()} `}
+                  </h4>
+
                   <ListGroup variant="flush" className="mb-3">
                     <ListGroup.Item><strong>Bedrooms:</strong> {listing.bedrooms}</ListGroup.Item>
                     <ListGroup.Item><strong>Bathrooms:</strong> {listing.bathrooms}</ListGroup.Item>
                     <ListGroup.Item><strong>Size:</strong> {listing.size} sq ft</ListGroup.Item>
                   </ListGroup>
                 </Col>
+                {!isFromRecommended && (
                 <Col md={6}>
                   {(car || walk || cycling || publicTransport) &&
                     <div>
@@ -201,6 +213,7 @@ const IndividualListings = () => {
                     </div>
                   }
                 </Col>
+                    )}
               </Row>
 
               <hr />
@@ -210,7 +223,12 @@ const IndividualListings = () => {
                 <Button variant="secondary" onClick={handleBackClick}>
                   ← Back
                 </Button>
-                <Button variant="success">Contact Landlord</Button>
+                <Button 
+                  variant="success" 
+                  onClick={() => window.open(`https://www.daft.ie${listing.url}`, '_blank')}
+                >
+                  Go To Listing
+                </Button>
               </div>
 
               <hr />
