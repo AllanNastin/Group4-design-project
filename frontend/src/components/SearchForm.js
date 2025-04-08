@@ -136,7 +136,6 @@ const SearchForm = () => {
 
     const submitForm = (e) => {
         e.preventDefault();
-        console.log("Submit button clicked!");
 
         const form = e.currentTarget;
 
@@ -161,7 +160,6 @@ const SearchForm = () => {
             payload["size-max"] = formData.get("size-max") || "";
 
 
-            console.log("Form payload being sent:", payload);
 
             navigate("/listings", { state: { payload } });
         }

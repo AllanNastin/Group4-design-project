@@ -154,7 +154,6 @@ const IndividualListings = () => {
         savedListings.push(listingDataToSave);
         sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
         setIsSaved(true);
-        console.log("Listings saved:", savedListings);
       }
     }
   };

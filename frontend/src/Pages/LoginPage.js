@@ -12,7 +12,6 @@ const LoginPage = () => {
         }
 
         window.handleCredentialResponse = (response) => {
-            console.log("Google JWT Token:", response.credential);
             localStorage.setItem("google_token", response.credential);
             navigate("/search");
         };
