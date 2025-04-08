@@ -52,7 +52,7 @@ const SavedListings = () => {
                         listing.commute_times.car !== "None" &&
                         listing.commute_times.walk !== "None" && (
                             <>
-                  🚗 {listing.commute_times?.car} min | 🚶 {listing.commute_times?.walk} min
+                  🚗 {listing.commute_times?.car} min | 🚶 {listing.commute_times?.walk} min | 🚲 {listing.commute_times?.cycling} min | 🚌 {listing.commute_times?.public} min
                             </>
                         )}
                 </Card.Text>
