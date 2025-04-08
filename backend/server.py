@@ -340,7 +340,7 @@ def getListings():
                 if listing_location == location.upper():
                     listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
                 # print(f"Listing location: {listing_location}", flush=True)  # Debug print
-                distance, car_time, walk_time, public_time, cycling_time = get_distance_and_times(listing_location, commute, google_api_key)
+                distance, car_time, walk_time, public_time, cycling_time = get_distance_and_times(commute, listing[1], google_api_key)
 
                 price_history = []
                 price_dates = []
