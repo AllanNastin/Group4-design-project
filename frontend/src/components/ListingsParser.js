@@ -150,9 +150,26 @@ const ListingsParser = () => {
             </Row>
             {listingsData.listings.length > 0 && totalPages > 1 && ( // Show buttons only if more than one page
                 <div className="d-flex justify-content-center mt-2">
-
-                    <span className="mx-3 align-self-center">Page {currentPage} of {totalPages}</span>
-
+                    <span className="mx-3 align-self-center">
+                        Page{" "}
+                        <input
+                            type="number"
+                            min="1"
+                            max={totalPages}
+                            defaultValue={currentPage}
+                            onBlur={(e) => {
+                                const newPage = parseInt(e.target.value, 10);
+                                if (!isNaN(newPage) && newPage >= 1 && newPage <= totalPages) {
+                                    handlePageChange(newPage);
+                                } else {
+                                    e.target.value = currentPage;
+                                }
+                            }}
+                            className="form-control d-inline-block"
+                            style={{ width: "60px", textAlign: "center" }}
+                        />{" "}
+                        of {totalPages}
+                    </span>
                 </div>
             )}
             {totalPages > 1 && (
