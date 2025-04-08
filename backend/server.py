@@ -364,7 +364,7 @@ def getListings():
                 sql_query += " AND pd.Size <= %s"
                 params.append(sizeMax)
             
-            # Limit the number of results to 30
+            # Limit the number of results to page_limit
             sql_query += " LIMIT %s OFFSET %s"
             params.append(page_limit)
             offset = (page - 1) * page_limit
