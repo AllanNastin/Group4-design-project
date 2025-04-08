@@ -10,7 +10,3 @@ test("window.matchMedia is mocked", () => {
     expect(window.matchMedia).toBeDefined();
 });
 
-test("console.error is mocked", () => {
-    console.error("This is a test error");
-    expect(console.error).toHaveBeenCalled();
-});

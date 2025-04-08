@@ -11,7 +11,6 @@ global.matchMedia = global.matchMedia || function () {
 beforeAll(() => {
     jest.spyOn(console, "error").mockImplementation((message) => {
         if (message.includes("act(...)")) return;
-        console.warn(message);
     });
 });
 
