@@ -4,7 +4,7 @@ import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import axios from 'axios';
 import { motion } from "framer-motion";
 
-let pageLimit = 12;
+const pageLimit = 12;
 
 const ListingsParser = () => {
     const [listingsData, setListingsData] = useState(null);
@@ -16,6 +16,7 @@ const ListingsParser = () => {
     const apiUrl = process.env.REACT_APP_API_URL;
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [pageInput, setPageInput] = useState(currentPage);
 
     useEffect(() => {
         const getListings = async () => {
@@ -76,6 +77,7 @@ const ListingsParser = () => {
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPages) {
             setCurrentPage(newPage); // Update page and trigger fetch
+            setPageInput(newPage); // Sync input with current page
         }
     };
 
@@ -156,13 +158,14 @@ const ListingsParser = () => {
                             type="number"
                             min="1"
                             max={totalPages}
-                            value={currentPage}
-                            onBlur={(e) => {
-                                const newPage = parseInt(e.target.value, 10);
+                            value={pageInput}
+                            onChange={(e) => setPageInput(e.target.value)}
+                            onBlur={() => {
+                                const newPage = parseInt(pageInput, 10);
                                 if (!isNaN(newPage) && newPage >= 1 && newPage <= totalPages) {
                                     handlePageChange(newPage);
                                 } else {
-                                    e.target.value = currentPage;
+                                    setPageInput(currentPage); // Reset to current page if invalid
                                 }
                             }}
                             className="form-control d-inline-block"
