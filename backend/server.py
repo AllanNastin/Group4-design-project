@@ -250,7 +250,7 @@ def getListings():
     try:
         try:
             page = int(request.args.get('page'))
-        except:
+        except ValueError:
             page = 1
         listing_type = request.args.get('type')
         location = request.args.get('location')

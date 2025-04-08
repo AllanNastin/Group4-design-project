@@ -156,7 +156,7 @@ const ListingsParser = () => {
                             type="number"
                             min="1"
                             max={totalPages}
-                            defaultValue={currentPage}
+                            value={currentPage}
                             onBlur={(e) => {
                                 const newPage = parseInt(e.target.value, 10);
                                 if (!isNaN(newPage) && newPage >= 1 && newPage <= totalPages) {
