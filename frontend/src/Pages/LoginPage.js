@@ -1,9 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Container, Row, Col, Card} from "react-bootstrap";
+import logo from "../../src/logo.svg";
 
 const LoginPage = () => {
     const navigate = useNavigate();
+
+    const [hoveredId, setHoveredId] = useState(null);
 
     useEffect(() => {
         if (!window.google || !window.google.accounts) {
@@ -35,31 +39,41 @@ const LoginPage = () => {
     }, [navigate]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-200 via-white to-blue-100">
-            <div className="bg-white shadow-2xl rounded-2xl p-10 flex flex-col items-center max-w-md w-full mx-4">
-                <motion.h1
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="text-4xl font-extrabold text-blue-700 mb-4 tracking-wide"
-                >
-                    House Scraper
-                </motion.h1>
-
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 0.8 }}
-                    className="text-base text-gray-600 mb-6 text-center"
-                >
-                    Start your smart property journey by logging in with Google
-                </motion.p>
-
-                <div id="google-login-button" className="mb-4"></div>
-
-                <p className="text-xs text-gray-400 mt-4"> Group4</p>
-            </div>
-        </div>
+        <Container className="mt-5">
+            <Row className="justify-content-md-center">
+                <Col key={1} md="auto" className="mb-4">
+                    <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{
+                    opacity: 1,
+                    y: 0,
+                    scale: hoveredId === null
+                    ? 1
+                    : hoveredId === 1
+                    ? 1.05
+                    : 0.95,
+                    filter: hoveredId === null
+                    ? "brightness(1)"
+                    : hoveredId === 1
+                    ? "brightness(1.05)"
+                    : "brightness(0.8)"
+                    }}
+                    transition={{ duration: 0.4 }}
+                    onMouseEnter={() => setHoveredId(1)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    >
+                        <Card className="shadow-lg">
+                            <Card.Img variant="top" src={logo} />
+                            <Card.Body>
+                                <Card.Title className="text-center">HomeRoute</Card.Title>
+                                <Card.Text className="text-muted text-center">Smart Property Finder</Card.Text>
+                                <div id="google-login-button" className="d-flex justify-content-center mb-4"></div>
+                            </Card.Body>
+                        </Card>
+                    </motion.div>
+                </Col>
+            </Row>
+        </Container>
     );
 };
 

@@ -290,26 +290,26 @@ const SearchForm = () => {
                                     </Form.Select>
                                 </Form.Group>
 
-                                {/* Size (sq ft) */}
+                                {/* Size (m²) */}
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Size (sq ft)</Form.Label>
+                                    <Form.Label>Size (m²)</Form.Label>
                                     <div className="mb-3 d-flex align-items-center">
                                         <Form.Select name="size-min">
                                             <option>Min</option>
-                                            <option value="500">500 sq ft</option>
-                                            <option value="1000">1,000 sq ft</option>
-                                            <option value="1500">1,500 sq ft</option>
-                                            <option value="2000">2,000 sq ft</option>
-                                            <option value="3000">3,000 sq ft</option>
+                                            <option value="500">500 m²</option>
+                                            <option value="1000">1,000 m²</option>
+                                            <option value="1500">1,500 m²</option>
+                                            <option value="2000">2,000 m²</option>
+                                            <option value="3000">3,000 m²</option>
                                         </Form.Select>
                                         <Form.Text className="mx-2">to</Form.Text>
                                         <Form.Select name="size-max">
                                             <option>Max</option>
-                                            <option value="1000">1,000 sq ft</option>
-                                            <option value="1500">1,500 sq ft</option>
-                                            <option value="2000">2,000 sq ft</option>
-                                            <option value="3000">3,000 sq ft</option>
-                                            <option value="4000">4,000+ sq ft</option>
+                                            <option value="1000">1,000 m²</option>
+                                            <option value="1500">1,500 m²</option>
+                                            <option value="2000">2,000 m²</option>
+                                            <option value="3000">3,000 m²</option>
+                                            <option value="4000">4,000+ m²</option>
                                         </Form.Select>
                                     </div>
                                 </Form.Group>
