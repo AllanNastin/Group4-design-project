@@ -47,7 +47,7 @@ const UserProfile = () => {
     if (!user) return null;
 
     return (
-        <div ref={dropdownRef} style={{ position: "absolute", top: 10, right: 10 }}>
+        <div ref={dropdownRef} style={{ display: "flex", alignItems: "center", position: "relative" }}>
             <div
                 onClick={() => setOpen(!open)}
                 style={{ display: "flex", alignItems: "center", cursor: "pointer" }}

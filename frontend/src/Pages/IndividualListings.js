@@ -83,7 +83,6 @@ const IndividualListings = () => {
         savedListings.push(listingDataToSave);
         sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
         setIsSaved(true);
-        console.log("Listings saved:", savedListings);
       }
     }
   };
@@ -142,7 +141,7 @@ const IndividualListings = () => {
                   <ListGroup variant="flush" className="mb-3">
                     <ListGroup.Item><strong>Bedrooms:</strong> {listing.bedrooms}</ListGroup.Item>
                     <ListGroup.Item><strong>Bathrooms:</strong> {listing.bathrooms}</ListGroup.Item>
-                    <ListGroup.Item><strong>Size:</strong> {listing.size} sq ft</ListGroup.Item>
+                    <ListGroup.Item><strong>Size:</strong> {listing.size} m²</ListGroup.Item>
                   </ListGroup>
                 </Col>
                 {!isFromRecommended && (
