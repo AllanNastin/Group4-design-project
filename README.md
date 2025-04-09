@@ -31,7 +31,7 @@ For the recommended deployment (docker), make sure you have Docker installed on 
 - Copy the API key.
 
 3. Set up `.env`
-- rename [.env.example](https://github.com/AllanNastin/Group4-design-project/blob/main/backend/.env.example) to `.env`
+- rename [.env.example](https://github.com/AllanNastin/Group4-design-project/blob/dev/backend/.env.example) to `.env`
 - fill in each line as explained in the comments
 
 4. Run Backend & Database
