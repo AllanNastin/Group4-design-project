@@ -61,10 +61,12 @@ const RecommendedListings = () => {
                         transition={{ duration: 0.3 }}
                         className="text-center mt-5 d-flex flex-column align-items-center" // Center content
                     >
-                        <Spinner animation="border" role="status" className="mb-3">
-                            <span className="visually-hidden">Loading...</span>
-                        </Spinner>
-                        <h2>Loading Recommended Properties...</h2>
+                        <div style={{animation: "slideDown 0.6s ease-out"}}>
+                            <Spinner animation="border" role="status" className="mb-3">
+                                <span className="visually-hidden">Loading...</span>
+                            </Spinner>
+                            <h2>Loading Recommended Properties...</h2>
+                        </div>
                     </motion.div>
                 ) : error ? (
                     // Error State
