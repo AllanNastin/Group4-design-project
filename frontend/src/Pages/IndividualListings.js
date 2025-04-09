@@ -4,6 +4,7 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { decodeJWT } from "../Utils/UserManagement";
 import axios from 'axios';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -20,6 +21,8 @@ const IndividualListings = () => {
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const { state } = useLocation();
+  const apiUrl = process.env.REACT_APP_API_URL;
+
 
   const chartRef = useRef(null);
   const [data, setData] = useState({
@@ -139,22 +142,17 @@ const IndividualListings = () => {
     };
   };
 
-  const handleSaveListing = () => {
-    let savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
-    savedListings = savedListings.filter(savedItem => savedItem !== null && savedItem !== undefined);
+  const handleSaveListing = async (isSaved) => {
+    const token = localStorage.getItem("google_token");
+    const currentUrl = window.location.href;
 
     if (isSaved) {
-      const updatedListings = savedListings.filter(savedItem => savedItem.listing_id !== parseInt(id));
-      sessionStorage.setItem("savedListings", JSON.stringify(updatedListings));
+      const response = await axios.delete(`${apiUrl}/unsaveListing?id_token=${token}&url_to_unsave=${currentUrl}`);
       setIsSaved(false);
-    } else {
-      const alreadySaved = savedListings.some(savedItem => savedItem.listing_id === parseInt(id));
-      if (!alreadySaved) {
-        const listingDataToSave = saveListingData(listing); // Save data with the function
-        savedListings.push(listingDataToSave);
-        sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
-        setIsSaved(true);
-      }
+    }
+    else {
+      const response = await axios.post(`${apiUrl}/saveListing?id_token=${token}&url_to_save=${currentUrl}`);
+      setIsSaved(true);
     }
   };
 
@@ -179,7 +177,7 @@ const IndividualListings = () => {
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center">
                 <Card.Title className="text-center fs-3 fw-bold">{listing.address}</Card.Title>
-                <Button variant="link" className="p-0" onClick={handleSaveListing}>
+                <Button variant="link" className="p-0" onClick={() => { handleSaveListing(isSaved) }}>
                   {isSaved ? <FaHeart color="red" size={24} /> : <FaRegHeart color="gray" size={24} />}
                 </Button>
               </div>
