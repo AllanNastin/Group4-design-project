@@ -147,7 +147,7 @@ const RecommendedListings = () => {
                                         <strong>Bathrooms:</strong> {listing.bathrooms ?? "N/A"}
                                                     <br />
                                                     <strong>Size:</strong>{" "}
-                                        {listing.size ? `${listing.size} sq ft` : "N/A"}
+                                        {listing.size ? `${listing.size} m²` : "N/A"}
                                         <br />
                                                 </Card.Text>
 
