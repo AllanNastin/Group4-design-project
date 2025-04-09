@@ -105,8 +105,14 @@ const IndividualListings = () => {
   };
 
   const handleBackClick = () => {
-    const listingsData = state.listingsData;
-    navigate("/listings", { state: { listingsData } }); // Navigate back to the previous page for purpose of saved listings
+    if (state?.from === "/search") {
+      navigate("/search");
+    } else if (state?.from === "/listings") {
+      const listingsData = state?.listingsData;
+      navigate("/listings", { state: { listingsData } });
+    } else {
+      navigate(-1); // fallback
+    }
   };
 
   return (
