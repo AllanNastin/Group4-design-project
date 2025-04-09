@@ -58,7 +58,12 @@ const ListingsParser = () => {
     const handleListingClick = (listing) => {
         const payload = state.payload;
         navigate(`/listing/${listing.listing_id}/${payload.commute}`, {
-            state: { listing: listing, commute: payload.commute, listingsData: listingsData },
+            state: {
+                listing: listing,
+                commute: payload.commute,
+                listingsData: listingsData,
+                from: "/listings",
+            },
         });
     };
 
