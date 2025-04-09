@@ -67,14 +67,33 @@ const IndividualListings = () => {
       }
     };
 
+    const checkIfSaved = async () => {
+      try {
+        const google_token = localStorage.getItem("google_token")
+        const response = await axios.get(`${apiUrl}/isSaved`, {
+          params: {
+            id_token: google_token,
+            listing_url: window.location.href
+          }
+        });
+        setIsSaved(response.data.exists);
+      }
+      catch (error) {
+        setError(error);
+      }
+    }
+
 
     if (state && state.listing) {
+      console.log("State");
       const listingData = state.listing;
       setListing(listingData);
       setIsSaved(state.isSaved);
       setLoading(false);
     } else {
+      console.log("GetListing");
       getListing();
+      checkIfSaved();
     }
   }, [id, commute, state, navigate, apiUrl]); // apiUrl is included to get rid of warning
 
@@ -92,7 +111,6 @@ const IndividualListings = () => {
         ],
       });
     }
-
   }, [listing, id]);
 
   useEffect(() => {
@@ -152,7 +170,7 @@ const IndividualListings = () => {
               <Row>
                 <Col md={6}>
                   <h4 className="fw-bold text-primary">
-                    {listing.current_price === -1 ? "Unavailable " : `€${listing.current_price.toLocaleString()} `}
+                    {listing.price === -1 ? "Unavailable " : `€${listing.price.toLocaleString()} `}
                   </h4>
 
                   <ListGroup variant="flush" className="mb-3">

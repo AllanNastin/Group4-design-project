@@ -287,6 +287,38 @@ def unsaveListing():
     else:
         return jsonify({"error": "Invalid token"}), 401
 
+@app.route("/isSaved", methods=['GET'])
+def isSaved():
+    id_token = request.args.get('id_token')
+    user_info = validate_id_token(id_token)
+    listingToCheck = request.args.get('listing_url')
+    if user_info and listingToCheck:
+        email = user_info['email']
+        try:
+            conn = mysql.connector.connect(
+                host=os.getenv('DATABASE_HOST'),
+                port=os.getenv('DATABASE_PORT'),
+                user=os.getenv('DATABASE_USER'),
+                password=os.getenv('DATABASE_PASSWORD'),
+                database=os.getenv('DATABASE_NAME')
+            )
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT 1 FROM SavedListing
+                    WHERE UserId IN (SELECT Id FROM Users WHERE email = %s)
+                    AND SUBSTRING_INDEX(Link, '/', 8) = SUBSTRING_INDEX(%s, '/', 8);
+                """, (email, listingToCheck))
+                result = cursor.fetchone()
+                if result:
+                    return jsonify({"exists": True}), 200
+                else:
+                    return jsonify({"exists": False}), 200
+        except mysql.connector.Error as e:
+            print(f"Error from mysql connector: {e}")
+            return jsonify({"error": f"{e}"}), 500
+
+    else:
+        return jsonify({"error": "Invalid token"}), 401
 
 @app.route("/maps")
 def maps():
@@ -354,6 +386,7 @@ def getListing():
                 "bedrooms": listing[3],
                 "bathrooms": listing[4],
                 "size": listing[5],
+                "url": listing[6],
                 "price": listing[8],
                 "images": [sub[0] for sub in images],
                 "price_history": price_history,
