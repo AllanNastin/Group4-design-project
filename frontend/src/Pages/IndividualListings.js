@@ -4,7 +4,6 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { FaHeart, FaRegHeart } from "react-icons/fa";
-import { decodeJWT } from "../Utils/UserManagement";
 import axios from 'axios';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -57,7 +56,6 @@ const IndividualListings = () => {
         });
 
         if (response.status === 200) {
-          console.log(response.data);
           setListing(response.data);
           setLoading(false);
         }
@@ -71,16 +69,12 @@ const IndividualListings = () => {
 
 
     if (state && state.listing) {
+      console.log(state);
       const listingData = state.listing;
-      console.log(listingData);
       setListing(listingData);
-
+      console.log(state.isSaved);
+      setIsSaved(state.isSaved);
       setLoading(false);
-
-      let savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
-      savedListings = savedListings.filter(savedItem => savedItem !== null && savedItem !== undefined);
-      sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
-      setIsSaved(savedListings.some(savedItem => savedItem.listing_id === parseInt(id)));
     } else {
       getListing();
     }
@@ -88,22 +82,7 @@ const IndividualListings = () => {
 
   useEffect(() => {
     if (listing) {
-      const savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
-      const isListingSaved = savedListings.some(savedItem => savedItem.listing_id === parseInt(id));
-      setIsSaved(isListingSaved);
-      console.log(listing);
       setData({
-        labels: [...listing.price_dates],
-        datasets: [
-          {
-            label: 'Price History',
-            data: [...listing.price_history],
-            borderColor: 'rgba(75, 192, 192, 1)',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          },
-        ],
-      });
-      console.log({
         labels: [...listing.price_dates],
         datasets: [
           {
@@ -119,7 +98,6 @@ const IndividualListings = () => {
   }, [listing, id]);
 
   useEffect(() => {
-    console.log(data);
     if (chartRef.current) {
       chartRef.current.update();
     }

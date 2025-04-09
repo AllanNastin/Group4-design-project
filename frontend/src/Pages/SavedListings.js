@@ -49,7 +49,7 @@ const SavedListings = () => {
             cycling: paramsFromLink[3],
             public: paramsFromLink[4]
           }
-          listingDetail.url = `/listing/${extracted}/to`;
+          listingDetail.pathLink = `/listing/${extracted}/to`;
           console.log(listingDetail);
           if (!listingDetail.current_price) {
             listingDetail.current_price = listingDetail.price;
@@ -69,7 +69,7 @@ const SavedListings = () => {
 
 
   const handleListingClick = (listing) => {
-    navigate(listing.url, { state: { listing: listing, commute: listing.commute } });
+    navigate(listing.pathLink, { state: { listing: listing, commute: listing.commute, isSaved: true } });
   };
 
   return (
