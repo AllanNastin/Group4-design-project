@@ -36,7 +36,6 @@ const IndividualListings = () => {
       },
     ],
   });
-  const apiUrl = process.env.REACT_APP_API_URL;
 
   const location = useLocation();
   const isFromRecommended = location.pathname.includes("recommended");
@@ -58,6 +57,7 @@ const IndividualListings = () => {
         });
 
         if (response.status === 200) {
+          console.log(response.data);
           setListing(response.data);
           setLoading(false);
         }
@@ -69,10 +69,12 @@ const IndividualListings = () => {
       }
     };
 
+
     if (state && state.listing) {
       const listingData = state.listing;
-
+      console.log(listingData);
       setListing(listingData);
+
       setLoading(false);
 
       let savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
@@ -187,7 +189,7 @@ const IndividualListings = () => {
               <Row>
                 <Col md={6}>
                   <h4 className="fw-bold text-primary">
-                    {listing.price === -1 ? "Unavailable " : `€${listing.price.toLocaleString()} `}
+                    {listing.current_price === -1 ? "Unavailable " : `€${listing.current_price.toLocaleString()} `}
                   </h4>
 
                   <ListGroup variant="flush" className="mb-3">
@@ -197,20 +199,20 @@ const IndividualListings = () => {
                   </ListGroup>
                 </Col>
                 {!isFromRecommended && (
-                <Col md={6}>
-                  {(car || walk || cycling || publicTransport) &&
-                    <div>
-                      <h5 className="fw-bold">Commute Times:</h5>
-                      <ListGroup variant="flush">
-                        {car && <ListGroup.Item>🚗 By Car: {car} min</ListGroup.Item>}
-                        {walk && <ListGroup.Item>🚶‍ By Walk: {walk} min</ListGroup.Item>}
-                        {cycling && <ListGroup.Item>🚲 By Cycling: {cycling} min</ListGroup.Item>}
-                        {publicTransport && <ListGroup.Item>🚌 By Public Transport: {publicTransport} min</ListGroup.Item>}
-                      </ListGroup>
-                    </div>
-                  }
-                </Col>
-                    )}
+                  <Col md={6}>
+                    {(car || walk || cycling || publicTransport) &&
+                      <div>
+                        <h5 className="fw-bold">Commute Times:</h5>
+                        <ListGroup variant="flush">
+                          {car && <ListGroup.Item>🚗 By Car: {car} min</ListGroup.Item>}
+                          {walk && <ListGroup.Item>🚶‍ By Walk: {walk} min</ListGroup.Item>}
+                          {cycling && <ListGroup.Item>🚲 By Cycling: {cycling} min</ListGroup.Item>}
+                          {publicTransport && <ListGroup.Item>🚌 By Public Transport: {publicTransport} min</ListGroup.Item>}
+                        </ListGroup>
+                      </div>
+                    }
+                  </Col>
+                )}
               </Row>
 
               <hr />
@@ -220,8 +222,8 @@ const IndividualListings = () => {
                 <Button variant="secondary" onClick={handleBackClick}>
                   ← Back
                 </Button>
-                <Button 
-                  variant="success" 
+                <Button
+                  variant="success"
                   onClick={() => window.open(`https://www.daft.ie${listing.url}`, '_blank')}
                 >
                   Go To Listing
