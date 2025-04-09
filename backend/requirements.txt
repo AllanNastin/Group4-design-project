@@ -1,6 +1,11 @@
 requests
 beautifulsoup4
-# mysql-connector-python
+mysql-connector-python
 flask
 flask-cors
-# dotenv
+dotenv
+APScheduler
+googlemaps
+Flask-JWT-Extended
+Flask-Bcrypt
+requests

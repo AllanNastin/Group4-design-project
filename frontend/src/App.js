@@ -1,21 +1,41 @@
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from "react-router-dom";
 import IndividualListings from "./Pages/IndividualListings";
 import Listings from "./Pages/Listings";
 import Search from "./Pages/Search";
+import LoginPage from "./Pages/LoginPage";
+import SavedListings from "./Pages/SavedListings";
+import Header from "./components/Header";
 
-function App() {
+const RequireAuth = ({ children }) => {
+    const token = localStorage.getItem("google_token");
+    return token ? children : <Navigate to="/login" />;
+};
+
+const App = () => {
+  const location = useLocation();
+  const isLoginPage = location.pathname === "/login";
+
   return (
-    <Router>
+    <>
+      {!isLoginPage && <Header />}
       <Routes>
-        <Route path="/search" element={<Search/>} />
-        <Route path="/listings" element={<Listings/>} />
-        <Route path="/listing/:id" element={<IndividualListings />} />
-
-        <Route path="*" element={<Navigate to="/search" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/search" element={<RequireAuth><Search /></RequireAuth>} />
+        <Route path="/listings" element={<RequireAuth><Listings /></RequireAuth>} />
+        <Route path="/listing/:id/:commute" element={<RequireAuth><IndividualListings /></RequireAuth>} />
+        <Route path="/saved-listings" element={<SavedListings />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-    </Router>
+    </>
   );
-}
+};
 
-export default App;
+const AppWrapper = () => (
+  <Router>
+    <App />
+  </Router>
+);
+
+export default AppWrapper;
 

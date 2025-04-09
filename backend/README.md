@@ -1,6 +1,3 @@
 # Backend
 ### Install requirements
-`pip install -r requirements.txt`
-
-### Run Server
-`python Server.py`
+- For installation check [main readme](https://github.com/AllanNastin/Group4-design-project/blob/main/README.md)
