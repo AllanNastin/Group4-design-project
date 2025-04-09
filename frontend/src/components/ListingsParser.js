@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Container, Row, Col, Card, Button } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Spinner } from "react-bootstrap";
 import axios from 'axios';
 import { motion } from "framer-motion";
 
@@ -83,7 +83,25 @@ const ListingsParser = () => {
 
     const [hoveredId, setHoveredId] = useState(null);
 
-    if (loading) return <p className="text-center mt-5">Loading property listings...</p>;
+    if (loading) {
+        return (
+            <motion.div
+                key="loading" // Unique key for AnimatePresence
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="text-center mt-5 d-flex flex-column align-items-center" // Center content
+            >
+                <div style={{ animation: "slideDown 0.6s ease-out" }}>
+                    <Spinner animation="border" role="status" className="mb-3">
+                        <span className="visually-hidden">Loading...</span>
+                    </Spinner>
+                    <h2>Loading Property Listings...</h2>
+                </div>
+            </motion.div>
+        );
+    }
     if (error) return <p className="text-danger text-center mt-5">{error}</p>;
     if (!listingsData || !listingsData.listings || listingsData.listings.length === 0) {
         return (
