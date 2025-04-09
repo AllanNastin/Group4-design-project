@@ -69,16 +69,14 @@ const IndividualListings = () => {
 
 
     if (state && state.listing) {
-      console.log(state);
       const listingData = state.listing;
       setListing(listingData);
-      console.log(state.isSaved);
       setIsSaved(state.isSaved);
       setLoading(false);
     } else {
       getListing();
     }
-  }, [id, commute, state, navigate]);
+  }, [id, commute, state, navigate, apiUrl]); // apiUrl is included to get rid of warning
 
   useEffect(() => {
     if (listing) {
@@ -103,35 +101,16 @@ const IndividualListings = () => {
     }
   }, [data]);
 
-  const saveListingData = (listingToSave) => {
-    return {
-      listing_id: listingToSave.listing_id,
-      address: listingToSave.address,
-      eircode: listingToSave.eircode,
-      price: listingToSave.price,
-      bedrooms: listingToSave.bedrooms,
-      bathrooms: listingToSave.bathrooms,
-      size: listingToSave.size,
-      commute_times: listingToSave.commute_times,
-      description: listingToSave.description,
-      images: listingToSave.images,
-      price_dates: listingToSave.price_dates,
-      price_history: listingToSave.price_history,
-      commute: commute, // Include commute from URL
-      url: listingToSave.url,
-    };
-  };
-
   const handleSaveListing = async (isSaved) => {
     const token = localStorage.getItem("google_token");
     const currentUrl = window.location.href;
 
     if (isSaved) {
-      const response = await axios.delete(`${apiUrl}/unsaveListing?id_token=${token}&url_to_unsave=${currentUrl}`);
+      await axios.delete(`${apiUrl}/unsaveListing?id_token=${token}&url_to_unsave=${currentUrl}`);
       setIsSaved(false);
     }
     else {
-      const response = await axios.post(`${apiUrl}/saveListing?id_token=${token}&url_to_save=${currentUrl}`);
+      await axios.post(`${apiUrl}/saveListing?id_token=${token}&url_to_save=${currentUrl}`);
       setIsSaved(true);
     }
   };

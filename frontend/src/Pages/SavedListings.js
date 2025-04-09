@@ -65,7 +65,7 @@ const SavedListings = () => {
     fetchSavedListing(google_token);
     // get params from the link
     //console.log(saved);
-  }, []);
+  }, [apiUrl]); //apiUrl included to get rid of warning
 
 
   const handleListingClick = (listing) => {
