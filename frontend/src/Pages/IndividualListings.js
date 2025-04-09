@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Container, Row, Col, Card, Button, ListGroup } from "react-bootstrap";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Line } from "react-chartjs-2";
@@ -10,7 +10,11 @@ import axios from 'axios';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const IndividualListings = () => {
-  const { id, commute } = useParams();
+  const { id, carParam, walkParam, cyclingParam, publicTransportParam, commute } = useParams();
+  const car = carParam !== "non" ? carParam : null;
+  const walk = walkParam !== "non" ? walkParam : null;
+  const cycling = cyclingParam !== "non" ? cyclingParam : null;
+  const publicTransport = publicTransportParam !== "non" ? publicTransportParam : null;
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [error, setError] = useState(null);
@@ -20,12 +24,50 @@ const IndividualListings = () => {
   const apiUrl = process.env.REACT_APP_API_URL;
 
 
+  const chartRef = useRef(null);
+  const [data, setData] = useState({
+    labels: [],
+    datasets: [
+      {
+        label: 'Price History',
+        data: [],
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+      },
+    ],
+  });
+  const apiUrl = process.env.REACT_APP_API_URL;
+
+  const location = useLocation();
+  const isFromRecommended = location.pathname.includes("recommended");
+
+
   useEffect(() => {
     if (!id) {
       setError(`Listing ID is missing in the URL.`);
       setLoading(false);
       return;
     }
+
+    const getListing = async () => {
+      try {
+        const response = await axios.get(`${apiUrl}/getListing`, {
+          params: {
+            listing_id: id
+          }
+        });
+
+        if (response.status === 200) {
+          setListing(response.data);
+          setLoading(false);
+        }
+        else {
+          setError(`(${response.status}) Error loading listing`);
+        }
+      } catch (error) {
+        setError(error);
+      }
+    };
 
     if (state && state.listing) {
       const listingData = state.listing;
@@ -38,8 +80,7 @@ const IndividualListings = () => {
       sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
       setIsSaved(savedListings.some(savedItem => savedItem.listing_id === parseInt(id)));
     } else {
-      setError(`Listing data is not available.`);
-      setLoading(false);
+      getListing();
     }
   }, [id, commute, state, navigate]);
 
@@ -48,8 +89,39 @@ const IndividualListings = () => {
       const savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
       const isListingSaved = savedListings.some(savedItem => savedItem.listing_id === parseInt(id));
       setIsSaved(isListingSaved);
+      console.log(listing);
+      setData({
+        labels: [...listing.price_dates],
+        datasets: [
+          {
+            label: 'Price History',
+            data: [...listing.price_history],
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          },
+        ],
+      });
+      console.log({
+        labels: [...listing.price_dates],
+        datasets: [
+          {
+            label: 'Price History',
+            data: [...listing.price_history],
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          },
+        ],
+      });
     }
+
   }, [listing, id]);
+
+  useEffect(() => {
+    console.log(data);
+    if (chartRef.current) {
+      chartRef.current.update();
+    }
+  }, [data]);
 
   const saveListingData = (listingToSave) => {
     return {
@@ -66,6 +138,7 @@ const IndividualListings = () => {
       price_dates: listingToSave.price_dates,
       price_history: listingToSave.price_history,
       commute: commute, // Include commute from URL
+      url: listingToSave.url,
     };
   };
 
@@ -87,20 +160,10 @@ const IndividualListings = () => {
   if (error) return <p className="text-danger text-center mt-5">{error}</p>;
   if (!listing) return <p className="text-center mt-5">No listing found.</p>;
 
-  const data = {
-    labels: listing.price_dates,
-    datasets: [
-      {
-        label: 'Price History',
-        data: listing.price_history,
-        borderColor: 'rgba(75, 192, 192, 1)',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-      },
-    ],
-  };
-
   const handleBackClick = () => {
-    navigate(-1); // Navigate back to the previous page for purpose of saved listings
+    const listingsData = state.listingsData;
+    const commute = state.commute;
+    navigate("/listings", { state: { listingsData, commute } }); // Navigate back to the previous page for purpose of saved listings
   };
 
   return (
@@ -123,22 +186,31 @@ const IndividualListings = () => {
 
               <Row>
                 <Col md={6}>
-                  <h4 className="fw-bold text-primary">€{listing.price.toLocaleString()}</h4>
+                  <h4 className="fw-bold text-primary">
+                    {listing.price === -1 ? "Unavailable " : `€${listing.price.toLocaleString()} `}
+                  </h4>
+
                   <ListGroup variant="flush" className="mb-3">
                     <ListGroup.Item><strong>Bedrooms:</strong> {listing.bedrooms}</ListGroup.Item>
                     <ListGroup.Item><strong>Bathrooms:</strong> {listing.bathrooms}</ListGroup.Item>
                     <ListGroup.Item><strong>Size:</strong> {listing.size} sq ft</ListGroup.Item>
                   </ListGroup>
                 </Col>
+                {!isFromRecommended && (
                 <Col md={6}>
-                  <h5 className="fw-bold">Commute Times:</h5>
-                  <ListGroup variant="flush">
-                    <ListGroup.Item>🚗 By Car: {listing.commute_times?.car} min</ListGroup.Item>
-                    <ListGroup.Item>🚶‍ By Walk: {listing.commute_times?.walk} min</ListGroup.Item>
-                    <ListGroup.Item>🚲 By Cycling: {listing.commute_times?.cycling} min</ListGroup.Item>
-                    <ListGroup.Item>🚌 By Public Transport: {listing.commute_times?.public} min</ListGroup.Item>
-                  </ListGroup>
+                  {(car || walk || cycling || publicTransport) &&
+                    <div>
+                      <h5 className="fw-bold">Commute Times:</h5>
+                      <ListGroup variant="flush">
+                        {car && <ListGroup.Item>🚗 By Car: {car} min</ListGroup.Item>}
+                        {walk && <ListGroup.Item>🚶‍ By Walk: {walk} min</ListGroup.Item>}
+                        {cycling && <ListGroup.Item>🚲 By Cycling: {cycling} min</ListGroup.Item>}
+                        {publicTransport && <ListGroup.Item>🚌 By Public Transport: {publicTransport} min</ListGroup.Item>}
+                      </ListGroup>
+                    </div>
+                  }
                 </Col>
+                    )}
               </Row>
 
               <hr />
@@ -148,12 +220,17 @@ const IndividualListings = () => {
                 <Button variant="secondary" onClick={handleBackClick}>
                   ← Back
                 </Button>
-                <Button variant="success">Contact Landlord</Button>
+                <Button 
+                  variant="success" 
+                  onClick={() => window.open(`https://www.daft.ie${listing.url}`, '_blank')}
+                >
+                  Go To Listing
+                </Button>
               </div>
 
               <hr />
               <h5 className="fw-bold text-center">Price History</h5>
-              <Line data={data} />
+              <Line ref={chartRef} data={data} />
             </Card.Body>
           </Card>
         </Col>

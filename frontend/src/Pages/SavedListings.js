@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import axios from 'axios';
 
 const SavedListings = () => {
   const [savedListings, setSavedListings] = useState([]);
   const navigate = useNavigate();
   const apiUrl = process.env.REACT_APP_API_URL;
+
+    const location = useLocation();
+    const isFromRecommended = location.pathname.includes("recommended");
+
 
   useEffect(() => {
     const fetchSavedListing = async (google_token) => {
@@ -85,10 +90,21 @@ const SavedListings = () => {
               <Card.Body>
                 <Card.Title className="fs-5">{listing.address}</Card.Title>
                 <Card.Text>
-                  <strong>Price:</strong> {listing.current_price ? `€${listing.current_price.toLocaleString()}` : 'N/A'} <br />
-                  <strong>Bedrooms:</strong> {listing.bedrooms !== null ? listing.bedrooms : 'N/A'} | <strong>Bathrooms:</strong> {listing.bathrooms !== null ? listing.bathrooms : 'N/A'} <br />
+
+                    <strong>Price:</strong> {listing.current_price === -1 ? " Unavailable " : `€${listing.current_price.toLocaleString()} `} <br />
+                    <strong>Bedrooms:</strong> {listing.bedrooms !== null ? listing.bedrooms : 'N/A'} | <strong>Bathrooms:</strong> {listing.bathrooms !== null ? listing.bathrooms : 'N/A'} <br />
+
                   <strong>Size:</strong> {listing.size !== null ? `${listing.size} sq ft` : 'N/A'} <br />
+                    {!isFromRecommended &&
+                        listing.commute_times &&
+                        listing.commute_times.car !== "None" &&
+                        listing.commute_times.walk !== "None" &&
+                        listing.commute_times.cycling !== "None" &&
+                        listing.commute_times.public !== "None" && (
+                            <>
                   🚗 {listing.commute_times?.car} min | 🚶 {listing.commute_times?.walk} min | 🚲 {listing.commute_times?.cycling} min | 🚌 {listing.commute_times?.public} min
+                            </>
+                        )}
                 </Card.Text>
                 <Button variant="primary" onClick={() => handleListingClick(listing)}>
                   View Details

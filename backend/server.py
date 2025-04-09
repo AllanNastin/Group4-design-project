@@ -18,7 +18,7 @@ import google.auth
 from google.auth.transport.requests import Request
 from google.oauth2 import id_token
 
-listing_return_limit=" LIMIT 30"
+page_limit=12
 
 load_dotenv()
 google_api_key = os.getenv("GOOGLE_API_KEY")
@@ -325,19 +325,26 @@ def getListing():
             images = cursor.fetchall()
             print(f"Listing: {listing}", flush=True)  # Debug print
 
-            cursor.execute("""
-                SELECT Price
-                FROM daftListing.PropertyPriceHistory 
-                WHERE PropertyId = %s;
-            """, (listing_id,))
-            price_history = cursor.fetchall()
+            price_history = []
+            price_dates = []
 
             cursor.execute("""
-                SELECT Timestamp
+                SELECT Price, Timestamp 
                 FROM daftListing.PropertyPriceHistory 
-                WHERE PropertyId = %s;
-            """, (listing_id,))
-            price_dates = cursor.fetchall()
+                WHERE PropertyId = %s
+                ORDER BY Timestamp ASC;
+            """, (listing[0],))
+
+            results = cursor.fetchall()
+
+            if results:
+                # Use zip(*results) to transpose the list of tuples 
+                # It creates two tuples: one with all prices, one with all timestamps
+                raw_prices, raw_dates = zip(*results) 
+                    
+                # Convert the tuple of prices into a list
+                price_history = list(raw_prices)
+                price_dates = [d.strftime('%d/%m/%Y') for d in raw_dates]
 
             jsonEntry = {
                 "listing_id": listing[0],
@@ -346,7 +353,7 @@ def getListing():
                 "bedrooms": listing[3],
                 "bathrooms": listing[4],
                 "size": listing[5],
-                "current_price": listing[8],
+                "price": listing[8],
                 "images": [sub[0] for sub in images],
                 "price_history": price_history,
                 "price_dates": price_dates,
@@ -364,6 +371,10 @@ def getListings():
     # ignore default values
     defaultParams = ["Min", "Max", "Any", ""]
     try:
+        try:
+            page = int(request.args.get('page'))
+        except (TypeError, ValueError):
+            page = 1
         listing_type = request.args.get('type')
         location = request.args.get('location')
         commute = request.args.get('commute')
@@ -385,11 +396,12 @@ def getListings():
         print("Size Max:", request.args.get('size-max'))
     except KeyError:
         return jsonify({"error": "Missing required parameters"}), 400
-    ForSaleValue = 1
 
     if listing_type == "rent":
         ForSaleValue = 0
-    
+    else:
+        ForSaleValue = 1
+
     try:
         response = {
             "total_results": 0,
@@ -403,6 +415,45 @@ def getListings():
             database=os.getenv('DATABASE_NAME')
         )
         with conn.cursor() as cursor:
+            # --- Counting Query ---
+            count_query = """
+                SELECT COUNT(*)
+                FROM PropertyDetails pd
+                JOIN PropertyPriceHistory pph ON pd.Id = pph.PropertyId
+                WHERE pph.Timestamp = (
+                    SELECT MAX(Timestamp) FROM PropertyPriceHistory WHERE Timestamp >= NOW() - INTERVAL 1 DAY AND PropertyId = pd.Id 
+                )
+                AND pd.ForSale = %s
+            """
+            params = [ForSaleValue]
+            if location is not None:
+                if len(location) == 3:
+                    count_query += " AND pd.Eircode LIKE %s"
+                    params.append(f"{location}%")
+            if priceMin != None:
+                count_query += " AND pph.Price >= %s"
+                params.append(priceMin)
+            if priceMax != None:
+                count_query += " AND pph.Price <= %s"
+                params.append(priceMax)
+            if beds != None:
+                count_query += " AND pd.Bed >= %s"
+                params.append(beds)
+            if baths != None:
+                count_query += " AND pd.Bath >= %s"
+                params.append(baths)
+            if sizeMin != None:
+                count_query += " AND pd.Size >= %s"
+                params.append(sizeMin)
+            if sizeMax != None:
+                count_query += " AND pd.Size <= %s"
+                params.append(sizeMax)
+
+            cursor.execute(count_query, tuple(params))
+            total_count = cursor.fetchone()[0]
+            response["total_results"] = total_count
+
+            # --- Main Query (with LIMIT) ---
             sql_query = """
                 SELECT pd.*, pph.Price
                 FROM PropertyDetails pd
@@ -436,12 +487,14 @@ def getListings():
                 sql_query += " AND pd.Size <= %s"
                 params.append(sizeMax)
             
-            # Limit the number of results to 30
-            sql_query += listing_return_limit
+            # Limit the number of results to page_limit
+            sql_query += " LIMIT %s OFFSET %s"
+            params.append(page_limit)
+            offset = (page - 1) * page_limit
+            params.append(offset)
 
             cursor.execute(sql_query, tuple(params))
             results = cursor.fetchall()
-            response["total_results"] = len(results)
 
             print(f"Total results: {len(results)}", flush=True)  # Debug print
             # fetch pics from the filtered results
@@ -456,7 +509,7 @@ def getListings():
                 if listing_location == location.upper():
                     listing_location = next((k for k, v in eircode_map.items() if v == location.upper()), location)
                 # print(f"Listing location: {listing_location}", flush=True)  # Debug print
-                distance, car_time, walk_time, public_time, cycling_time = get_distance_and_times(listing_location, commute, google_api_key)
+                distance, car_time, walk_time, public_time, cycling_time = get_distance_and_times(commute, listing[1], google_api_key)
 
                 price_history = []
                 price_dates = []
@@ -481,6 +534,7 @@ def getListings():
 
                 jsonEntry = {
                     "listing_id": listing[0],
+                    "url": listing[6],
                     "address": listing[1],
                     "eircode": listing[2],
                     "bedrooms": listing[3],
