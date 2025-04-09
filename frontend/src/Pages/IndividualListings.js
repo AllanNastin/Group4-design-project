@@ -85,13 +85,11 @@ const IndividualListings = () => {
 
 
     if (state && state.listing) {
-      console.log("State");
       const listingData = state.listing;
       setListing(listingData);
       setIsSaved(state.isSaved);
       setLoading(false);
     } else {
-      console.log("GetListing");
       getListing();
       checkIfSaved();
     }

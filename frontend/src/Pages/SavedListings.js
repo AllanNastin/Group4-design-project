@@ -23,19 +23,15 @@ const SavedListings = () => {
       });
       const savedLinks = response.data;
       // get params from link
-      const regex = /\/listing\/([^\/]+\/[^\/]+\/[^\/]+\/[^\/]+\/[^\/]+)/;
+      const regex = /\/listing\/([^/]+\/[^/]+\/[^/]+\/[^/]+\/[^/]+)/;
       let theSavedListing = [];
-      console.log(savedLinks);
       for (let i = 0; i < savedLinks.length; i++) {
         const match = savedLinks[i][0].match(regex);
-        console.log(match);
         const pathname = new URL(savedLinks[i][0]).pathname;
         const parts = pathname.split("/");
-        console.log(parts);
         if (match) {
           const extracted = match[1];
           const paramsFromLink = extracted.split('/');
-          console.log(paramsFromLink);
           // fetch details
           const detailResponse = await axios.get(`${apiUrl}/getListing`, {
             params: {
@@ -50,16 +46,14 @@ const SavedListings = () => {
             public: paramsFromLink[4]
           }
           listingDetail.pathLink = `/listing/${extracted}/to`;
-          console.log(listingDetail);
           if (!listingDetail.current_price) {
             listingDetail.current_price = listingDetail.price;
           }
           theSavedListing.push(listingDetail);
-          setLoading(false);
         }
       }
-      console.log(theSavedListing);
       setSavedListings(theSavedListing);
+      setLoading(false);
     }
     const google_token = localStorage.getItem("google_token")
     fetchSavedListing(google_token);

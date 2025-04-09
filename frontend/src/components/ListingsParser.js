@@ -71,14 +71,14 @@ const ListingsParser = () => {
         commute_params += listing.commute_times.walk ? `/${listing.commute_times.walk}` : "/non";
         commute_params += listing.commute_times.cycling ? `/${listing.commute_times.cycling}` : "/non";
         commute_params += listing.commute_times.public ? `/${listing.commute_times.public}` : "/non";
-        console.log(commute_params);
+        //console.log(commute_params);
         const listing_state = { ...listing, current_price: listing.price }
         navigate(`/listing/${listing.listing_id}${commute_params}/${payload.commute}`, {
-            state: { 
-              listing: listing_state, 
-              commute: commuteVar,
-              listingsData: listingsData,
-              from: "/listings",
+            state: {
+                listing: listing_state,
+                commute: commuteVar,
+                listingsData: listingsData,
+                from: "/listings",
             },
         });
     };
