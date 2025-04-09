@@ -51,6 +51,9 @@ const SavedListings = () => {
           }
           listingDetail.url = `/listing/${extracted}/to`;
           console.log(listingDetail);
+          if (!listingDetail.current_price) {
+            listingDetail.current_price = listingDetail.price;
+          }
           theSavedListing.push(listingDetail);
           setLoading(false);
         }
@@ -93,7 +96,7 @@ const SavedListings = () => {
                     <strong>Price:</strong> {listing.current_price === -1 ? " Unavailable " : `€${listing.current_price.toLocaleString()} `} <br />
                     <strong>Bedrooms:</strong> {listing.bedrooms !== null ? listing.bedrooms : 'N/A'} | <strong>Bathrooms:</strong> {listing.bathrooms !== null ? listing.bathrooms : 'N/A'} <br />
 
-                  <strong>Size:</strong> {listing.size !== null ? `${listing.size} m²` : 'N/A'} <br />
+                    <strong>Size:</strong> {listing.size !== null ? `${listing.size} m²` : 'N/A'} <br />
 
                     {!isFromRecommended &&
                       listing.commute_times &&
