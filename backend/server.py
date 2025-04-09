@@ -49,7 +49,6 @@ def validate_id_token(id_token_params):
         if not id_token_params:
             return None
         id_info = id_token.verify_oauth2_token(id_token_params, Request(), CLIENT_ID)
-        print(id_info, flush = True)
         return id_info
     except ValueError as e:
         # If token is invalid, handle the error
@@ -264,6 +263,8 @@ def unsaveListing():
     listingToUnsave = request.args.get('url_to_unsave')
     if user_info and listingToUnsave:
         email = user_info['email']
+        print(email,flush = True)
+        print(listingToUnsave, flush = True)
         try:
             conn = mysql.connector.connect(
                 host=os.getenv('DATABASE_HOST'),
@@ -276,7 +277,7 @@ def unsaveListing():
                 cursor.execute("""
                     DELETE FROM SavedListing
                     WHERE UserId IN (SELECT Id FROM Users WHERE email = %s)
-                    AND Link = %s;
+                    AND SUBSTRING_INDEX(Link, '/', 8) = SUBSTRING_INDEX(%s, '/', 8);
                 """, (email, listingToUnsave))
                 conn.commit()
                 return jsonify({"message": "Listing unsave successfully"}), 200
