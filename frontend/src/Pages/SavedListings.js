@@ -1,14 +1,60 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
 
 const SavedListings = () => {
   const [savedListings, setSavedListings] = useState([]);
   const navigate = useNavigate();
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
-    const saved = JSON.parse(sessionStorage.getItem("savedListings")) || [];
-    setSavedListings(saved);
+    const fetchSavedListing = async (google_token) => {
+      const response = await axios.get(`${apiUrl}/saveListing`, {
+        params: {
+          id_token: google_token
+        }
+      });
+      const savedLinks = response.data;
+      // get params from link
+      const regex = /\/listing\/([^\/]+\/[^\/]+\/[^\/]+\/[^\/]+\/[^\/]+)/;
+      let theSavedListing = [];
+      console.log(savedLinks);
+      for (let i = 0; i < savedLinks.length; i++) {
+        const match = savedLinks[i][0].match(regex);
+        console.log(match);
+        const pathname = new URL(savedLinks[i][0]).pathname;
+        const parts = pathname.split("/");
+        console.log(parts);
+        if (match) {
+          const extracted = match[1];
+          const paramsFromLink = extracted.split('/');
+          console.log(paramsFromLink);
+          // fetch details
+          const detailResponse = await axios.get(`${apiUrl}/getListing`, {
+            params: {
+              listing_id: paramsFromLink[0]
+            }
+          });
+          let listingDetail = detailResponse.data;
+          listingDetail.commute_times = {
+            car: paramsFromLink[1],
+            walk: paramsFromLink[2],
+            cycling: paramsFromLink[3],
+            public: paramsFromLink[4]
+          }
+          listingDetail.url = `/listing/${extracted}/to`;
+          console.log(listingDetail);
+          theSavedListing.push(listingDetail);
+        }
+      }
+      console.log(theSavedListing);
+      setSavedListings(theSavedListing);
+    }
+    const google_token = localStorage.getItem("google_token")
+    fetchSavedListing(google_token);
+    // get params from the link
+    //console.log(saved);
   }, []);
 
   if (savedListings.length === 0) {
@@ -21,9 +67,9 @@ const SavedListings = () => {
       </Container>
     );
   }
-
+  // FIX: view details button cannot navigate, origin is not allowed?
   const handleListingClick = (listing) => {
-    navigate(`/listing/${listing.listing_id}/${listing.commute}`, { state: { listing: listing, commute: listing.commute } });
+    navigate(listing.url, { state: { listing: listing, commute: listing.commute } });
   };
 
   return (
@@ -39,7 +85,7 @@ const SavedListings = () => {
               <Card.Body>
                 <Card.Title className="fs-5">{listing.address}</Card.Title>
                 <Card.Text>
-                  <strong>Price:</strong> {listing.price ? `€${listing.price.toLocaleString()}` : 'N/A'} <br />
+                  <strong>Price:</strong> {listing.current_price ? `€${listing.current_price.toLocaleString()}` : 'N/A'} <br />
                   <strong>Bedrooms:</strong> {listing.bedrooms !== null ? listing.bedrooms : 'N/A'} | <strong>Bathrooms:</strong> {listing.bathrooms !== null ? listing.bathrooms : 'N/A'} <br />
                   <strong>Size:</strong> {listing.size !== null ? `${listing.size} sq ft` : 'N/A'} <br />
                   🚗 {listing.commute_times?.car} min | 🚶 {listing.commute_times?.walk} min | 🚲 {listing.commute_times?.cycling} min | 🚌 {listing.commute_times?.public} min
