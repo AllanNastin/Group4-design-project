@@ -97,7 +97,7 @@ const ListingsParser = () => {
                     <Spinner animation="border" role="status" className="mb-3">
                         <span className="visually-hidden">Loading...</span>
                     </Spinner>
-                    <h2>Loading Property Listings...</h2>
+                    <p>Loading Property Listings...</p>
                 </div>
             </motion.div>
         );
