@@ -60,7 +60,7 @@ def get_distance_and_times(origin, destination, api_key):
         return driving_distance, driving_time_minutes, walking_time_minutes, public_time_minutes, cycling_time_minutes
     except googlemaps.exceptions.ApiError as e:
         print(f"Google Maps API Error: {e}")
-        return None, None, None
+        return None, None, None, None, None
     except (KeyError, IndexError) as e:
         print(f"Error parsing Google Maps API response: {e}")
-        return None, None, None
+        return None, None, None, None, None
