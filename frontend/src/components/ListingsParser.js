@@ -74,9 +74,15 @@ const ListingsParser = () => {
         console.log(commute_params);
         const listing_state = { ...listing, current_price: listing.price }
         navigate(`/listing/${listing.listing_id}${commute_params}/${payload.commute}`, {
-            state: { listing: listing_state, commute: payload.commute, listingsData: listingsData },
+            state: { 
+              listing: listing_state, 
+              commute: commuteVar,
+              listingsData: listingsData,
+              from: "/listings",
+            },
         });
     };
+
 
     const handleBackClick = () => {
         navigate("/search");

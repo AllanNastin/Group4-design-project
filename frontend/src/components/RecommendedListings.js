@@ -44,7 +44,10 @@ const RecommendedListings = () => {
 
     const handleClick = (listing) => {
         navigate(`/listing/${listing.listing_id}/recommended`, {
-            state: { listing },
+            state: {
+                listing,
+                from: "/search", // mark down resource from search
+            },
         });
     };
 
