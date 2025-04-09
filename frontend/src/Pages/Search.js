@@ -1,25 +1,11 @@
 import React from "react";
 import SearchForm from "../components/SearchForm";
-import UserProfile from "../components/UserProfile";
 import "../App.css";
 import RecommendedListings from "../components/RecommendedListings";
 
 const Search = () => {
     return (
         <div style={{ padding: "2rem" }}>
-            {/* top box UI */}
-            <div style={{
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-                padding: "1rem 2rem", backgroundColor: "#f8f9fa", borderRadius: "12px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.05)", marginBottom: "2rem",
-                animation: "slideDown 0.6s ease-out"
-            }}>
-                <div style={{ fontWeight: "bold", fontSize: "1.4rem", color: "#3c3c3c", display: "flex", alignItems: "center" }}>
-                    <img src="/logo192.png" alt="Logo" style={{ width: 36, height: 36, marginRight: 10 }} />
-                    House Scraper
-                </div>
-                <UserProfile />
-            </div>
 
             {/* search box UI */}
             <div style={{
