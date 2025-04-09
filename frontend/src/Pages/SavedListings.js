@@ -46,13 +46,15 @@ const SavedListings = () => {
                 <Card.Text>
                     <strong>Price:</strong> {listing.price === -1 ? " Unavailable " : `€${listing.price.toLocaleString()} `} <br />
                     <strong>Bedrooms:</strong> {listing.bedrooms !== null ? listing.bedrooms : 'N/A'} | <strong>Bathrooms:</strong> {listing.bathrooms !== null ? listing.bathrooms : 'N/A'} <br />
-                  <strong>Size:</strong> {listing.size !== null ? `${listing.size} sq ft` : 'N/A'} <br />
+                  <strong>Size:</strong> {listing.size !== null ? `${listing.size} m²` : 'N/A'} <br />
                     {!isFromRecommended &&
                         listing.commute_times &&
                         listing.commute_times.car !== "None" &&
-                        listing.commute_times.walk !== "None" && (
+                        listing.commute_times.walk !== "None" &&
+                        listing.commute_times.cycling !== "None" &&
+                        listing.commute_times.public !== "None" && (
                             <>
-                  🚗 {listing.commute_times?.car} min | 🚶 {listing.commute_times?.walk} min
+                  🚗 {listing.commute_times?.car} min | 🚶 {listing.commute_times?.walk} min | 🚲 {listing.commute_times?.cycling} min | 🚌 {listing.commute_times?.public} min
                             </>
                         )}
                 </Card.Text>

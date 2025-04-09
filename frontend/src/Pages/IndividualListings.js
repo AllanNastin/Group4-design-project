@@ -83,7 +83,6 @@ const IndividualListings = () => {
         savedListings.push(listingDataToSave);
         sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
         setIsSaved(true);
-        console.log("Listings saved:", savedListings);
       }
     }
   };
@@ -109,7 +108,8 @@ const IndividualListings = () => {
       navigate("/search");
     } else if (state?.from === "/listings") {
       const listingsData = state?.listingsData;
-      navigate("/listings", { state: { listingsData } });
+      const commute = state?.commute;
+      navigate("/listings", { state: { listingsData, commute } });
     } else {
       navigate(-1); // fallback
     }
@@ -142,7 +142,7 @@ const IndividualListings = () => {
                   <ListGroup variant="flush" className="mb-3">
                     <ListGroup.Item><strong>Bedrooms:</strong> {listing.bedrooms}</ListGroup.Item>
                     <ListGroup.Item><strong>Bathrooms:</strong> {listing.bathrooms}</ListGroup.Item>
-                    <ListGroup.Item><strong>Size:</strong> {listing.size} sq ft</ListGroup.Item>
+                    <ListGroup.Item><strong>Size:</strong> {listing.size} m²</ListGroup.Item>
                   </ListGroup>
                 </Col>
                 {!isFromRecommended && (
