@@ -140,7 +140,8 @@ const IndividualListings = () => {
       navigate("/search");
     } else if (state?.from === "/listings") {
       const listingsData = state?.listingsData;
-      const commute = state?.commute;
+      //const commute = state?.commute;
+      let commute = "FIX";
       navigate("/listings", { state: { listingsData, commute } });
     } else {
       navigate(-1); // fallback

@@ -51,6 +51,7 @@ const ListingsParser = () => {
                     if (status === 200) {
                         setListingsData(response.data);
                         setCommuteVar(payload.commute);
+                        console.log(payload.commute);
                         setTotalPages(Math.ceil(response.data.total_results / pageLimit)); // Calculate total pages
                     } else {
                         setError(`(${status}) Error loading listings`);
@@ -65,7 +66,7 @@ const ListingsParser = () => {
     }, [state, apiUrl, navigate, currentPage]); // Trigger fetch when currentPage changes
 
     const handleListingClick = (listing) => {
-        const payload = state.payload;
+        //const payload = state.payload;
         let commute_params = "";
         commute_params += listing.commute_times.car ? `/${listing.commute_times.car}` : "/non";
         commute_params += listing.commute_times.walk ? `/${listing.commute_times.walk}` : "/non";
@@ -73,7 +74,7 @@ const ListingsParser = () => {
         commute_params += listing.commute_times.public ? `/${listing.commute_times.public}` : "/non";
         //console.log(commute_params);
         const listing_state = { ...listing, current_price: listing.price }
-        navigate(`/listing/${listing.listing_id}${commute_params}/${payload.commute}`, {
+        navigate(`/listing/${listing.listing_id}${commute_params}/to`, {
             state: {
                 listing: listing_state,
                 commute: commuteVar,
