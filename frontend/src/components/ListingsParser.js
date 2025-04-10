@@ -51,7 +51,6 @@ const ListingsParser = () => {
                     if (status === 200) {
                         setListingsData(response.data);
                         setCommuteVar(payload.commute);
-                        console.log(payload.commute);
                         setTotalPages(Math.ceil(response.data.total_results / pageLimit)); // Calculate total pages
                     } else {
                         setError(`(${status}) Error loading listings`);
