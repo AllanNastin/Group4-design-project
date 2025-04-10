@@ -7,8 +7,8 @@ import SavedListings from "./Pages/SavedListings";
 import Header from "./components/Header";
 
 const RequireAuth = ({ children }) => {
-    const token = localStorage.getItem("google_token");
-    return token ? children : <Navigate to="/login" />;
+  const token = localStorage.getItem("google_token");
+  return token ? children : <Navigate to="/login" />;
 };
 
 const App = () => {
@@ -23,7 +23,9 @@ const App = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/search" element={<RequireAuth><Search /></RequireAuth>} />
         <Route path="/listings" element={<RequireAuth><Listings /></RequireAuth>} />
-        <Route path="/listing/:id/:commute" element={<RequireAuth><IndividualListings /></RequireAuth>} />
+        <Route path="/listing/:id/:carParam/:walkParam/:cyclingParam/:publicTransportParam/:commute"
+          element={<RequireAuth><IndividualListings /></RequireAuth>}
+        />
         <Route path="/saved-listings" element={<SavedListings />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

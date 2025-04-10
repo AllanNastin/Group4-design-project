@@ -32,19 +32,19 @@ const ListingsParser = () => {
                 } else {
                     const payload = state.payload;
                     const response = await axios.get(`${apiUrl}/getListings`, {
-                      params: {
-                        type: payload.type,
-                        location: payload.location,
-                        commute: payload.commute,
-                        // ✅ Add new filter parameters
-                        "price-min": payload["price-min"],
-                        "price-max": payload["price-max"],
-                        beds: payload.beds,
-                        baths: payload.baths,
-                        "size-min": payload["size-min"],
-                        "size-max": payload["size-max"],
-                        page: currentPage, // Add page parameter
-                      }
+                        params: {
+                            type: payload.type,
+                            location: payload.location,
+                            commute: payload.commute,
+                            // ✅ Add new filter parameters
+                            "price-min": payload["price-min"],
+                            "price-max": payload["price-max"],
+                            beds: payload.beds,
+                            baths: payload.baths,
+                            "size-min": payload["size-min"],
+                            "size-max": payload["size-max"],
+                            page: currentPage, // Add page parameter
+                        }
                     });
 
                     const status = response.status;
@@ -65,9 +65,17 @@ const ListingsParser = () => {
     }, [state, apiUrl, navigate, currentPage]); // Trigger fetch when currentPage changes
 
     const handleListingClick = (listing) => {
-        navigate(`/listing/${listing.listing_id}/${commuteVar}`, {
+        //const payload = state.payload;
+        let commute_params = "";
+        commute_params += listing.commute_times.car ? `/${listing.commute_times.car}` : "/non";
+        commute_params += listing.commute_times.walk ? `/${listing.commute_times.walk}` : "/non";
+        commute_params += listing.commute_times.cycling ? `/${listing.commute_times.cycling}` : "/non";
+        commute_params += listing.commute_times.public ? `/${listing.commute_times.public}` : "/non";
+        //console.log(commute_params);
+        const listing_state = { ...listing, current_price: listing.price }
+        navigate(`/listing/${listing.listing_id}${commute_params}/to`, {
             state: {
-                listing: listing,
+                listing: listing_state,
                 commute: commuteVar,
                 listingsData: listingsData,
                 from: "/listings",

@@ -14,6 +14,9 @@ from urllib.parse import quote_plus
 import datetime
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, JWTManager
+import google.auth
+from google.auth.transport.requests import Request
+from google.oauth2 import id_token
 
 page_limit=12
 
@@ -39,6 +42,17 @@ def scheduled_scrap():
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(scheduled_scrap, 'cron', hour=17, minute=30)
+
+def validate_id_token(id_token_params):
+    try:
+        CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
+        if not id_token_params:
+            return None
+        id_info = id_token.verify_oauth2_token(id_token_params, Request(), CLIENT_ID)
+        return id_info
+    except ValueError as e:
+        # If token is invalid, handle the error
+        return None
 
 # register user
 @app.route("/register", methods=["POST"])
@@ -171,6 +185,141 @@ def address_suggestions():
         print(f"Unexpected error in /api/address-suggestions: {e}", flush=True)
         return jsonify({"error": "Internal server error"}), 500
 
+@app.route("/saveListing", methods=['GET', 'POST'])
+def saveListing():
+    if request.method == 'GET':
+        id_token = request.args.get('id_token')
+        user_info = validate_id_token(id_token)
+        if user_info:
+            email = user_info['email']
+            try:
+                conn = mysql.connector.connect(
+                     host=os.getenv('DATABASE_HOST'),
+                    port=os.getenv('DATABASE_PORT'),
+                    user=os.getenv('DATABASE_USER'),
+                    password=os.getenv('DATABASE_PASSWORD'),
+                    database=os.getenv('DATABASE_NAME')
+                )
+                with conn.cursor() as cursor:
+                    cursor.execute("""
+                        SELECT Link FROM SavedListing WHERE UserId IN (SELECT Id FROM Users WHERE email = %s);
+                    """, (email,))
+                    listings = cursor.fetchall()
+                    print(listings, flush = True)
+                    return jsonify(listings), 200
+            except mysql.connector.Error as e:
+                print(f"Error from mysql connector: {e}")
+                return jsonify({"error": f"{e}"}), 500
+        else:
+            return jsonify({"error": "Invalid token"}), 401
+    if request.method == 'POST':
+        id_token = request.args.get('id_token')
+        listingUrl = request.args.get('url_to_save')
+        user_info = validate_id_token(id_token)
+        if user_info:
+            email = user_info['email']
+            try:
+                conn = mysql.connector.connect(
+                    host=os.getenv('DATABASE_HOST'),
+                    port=os.getenv('DATABASE_PORT'),
+                    user=os.getenv('DATABASE_USER'),
+                    password=os.getenv('DATABASE_PASSWORD'),
+                    database=os.getenv('DATABASE_NAME')
+                )
+                with conn.cursor() as cursor:
+                    create_or_getUser = """
+                        INSERT INTO Users (email)
+                        SELECT * FROM (SELECT %s) AS tmp
+                        WHERE NOT EXISTS (
+                            SELECT 1 FROM Users WHERE email = %s
+                        );
+                    """
+                    cursor.execute(create_or_getUser, (email, email))
+                    conn.commit()
+
+                    cursor.execute("SELECT Id FROM Users WHERE email = %s", (email,))
+                    userId = cursor.fetchone()[0]
+                    print(userId, flush=True)
+
+                    cursor.execute("""
+                        INSERT INTO SavedListing (UserId, Link)
+                        SELECT * FROM (SELECT %s AS UserId, %s AS LINK) AS temp
+                        WHERE NOT EXISTS (
+                            SELECT 1 FROM SavedListing WHERE UserId = %s AND Link = %s
+                        );
+                    """, (userId, listingUrl, userId, listingUrl))
+                    conn.commit()
+                return jsonify({"message": "Listing saved successfully"}), 200
+            except mysql.connector.Error as e:
+                print(f"Error from mysql connector: {e}")
+                return jsonify({"error": f"{e}"}), 500
+        else:
+            return jsonify({"error": "Invalid token"}), 401
+
+@app.route("/unsaveListing", methods=['DELETE'])
+def unsaveListing():
+    id_token = request.args.get('id_token')
+    user_info = validate_id_token(id_token)
+    listingToUnsave = request.args.get('url_to_unsave')
+    if user_info and listingToUnsave:
+        email = user_info['email']
+        print(email,flush = True)
+        print(listingToUnsave, flush = True)
+        try:
+            conn = mysql.connector.connect(
+                host=os.getenv('DATABASE_HOST'),
+                port=os.getenv('DATABASE_PORT'),
+                user=os.getenv('DATABASE_USER'),
+                password=os.getenv('DATABASE_PASSWORD'),
+                database=os.getenv('DATABASE_NAME')
+            )
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    DELETE FROM SavedListing
+                    WHERE UserId IN (SELECT Id FROM Users WHERE email = %s)
+                    AND SUBSTRING_INDEX(Link, '/', 8) = SUBSTRING_INDEX(%s, '/', 8);
+                """, (email, listingToUnsave))
+                conn.commit()
+                return jsonify({"message": "Listing unsave successfully"}), 200
+        except mysql.connector.Error as e:
+            print(f"Error from mysql connector: {e}")
+            return jsonify({"error": f"{e}"}), 500
+    else:
+        return jsonify({"error": "Invalid token"}), 401
+
+@app.route("/isSaved", methods=['GET'])
+def isSaved():
+    id_token = request.args.get('id_token')
+    user_info = validate_id_token(id_token)
+    listingToCheck = request.args.get('listing_url')
+    if user_info and listingToCheck:
+        email = user_info['email']
+        try:
+            conn = mysql.connector.connect(
+                host=os.getenv('DATABASE_HOST'),
+                port=os.getenv('DATABASE_PORT'),
+                user=os.getenv('DATABASE_USER'),
+                password=os.getenv('DATABASE_PASSWORD'),
+                database=os.getenv('DATABASE_NAME')
+            )
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT 1 FROM SavedListing
+                    WHERE UserId IN (SELECT Id FROM Users WHERE email = %s)
+                    AND SUBSTRING_INDEX(Link, '/', 8) = SUBSTRING_INDEX(%s, '/', 8);
+                """, (email, listingToCheck))
+                result = cursor.fetchone()
+                if result:
+                    return jsonify({"exists": True}), 200
+                else:
+                    return jsonify({"exists": False}), 200
+        except mysql.connector.Error as e:
+            print(f"Error from mysql connector: {e}")
+            return jsonify({"error": f"{e}"}), 500
+
+    else:
+        return jsonify({"error": "Invalid token"}), 401
+
 @app.route("/maps")
 def maps():
     origin = request.args.get('origin')
@@ -209,19 +358,26 @@ def getListing():
             images = cursor.fetchall()
             print(f"Listing: {listing}", flush=True)  # Debug print
 
-            cursor.execute("""
-                SELECT Price
-                FROM daftListing.PropertyPriceHistory 
-                WHERE PropertyId = %s;
-            """, (listing_id,))
-            price_history = cursor.fetchall()
+            price_history = []
+            price_dates = []
 
             cursor.execute("""
-                SELECT Timestamp
+                SELECT Price, Timestamp 
                 FROM daftListing.PropertyPriceHistory 
-                WHERE PropertyId = %s;
-            """, (listing_id,))
-            price_dates = cursor.fetchall()
+                WHERE PropertyId = %s
+                ORDER BY Timestamp ASC;
+            """, (listing[0],))
+
+            results = cursor.fetchall()
+
+            if results:
+                # Use zip(*results) to transpose the list of tuples 
+                # It creates two tuples: one with all prices, one with all timestamps
+                raw_prices, raw_dates = zip(*results) 
+                    
+                # Convert the tuple of prices into a list
+                price_history = list(raw_prices)
+                price_dates = [d.strftime('%d/%m/%Y') for d in raw_dates]
 
             jsonEntry = {
                 "listing_id": listing[0],
@@ -230,7 +386,8 @@ def getListing():
                 "bedrooms": listing[3],
                 "bathrooms": listing[4],
                 "size": listing[5],
-                "current_price": listing[8],
+                "url": listing[6],
+                "price": listing[8],
                 "images": [sub[0] for sub in images],
                 "price_history": price_history,
                 "price_dates": price_dates,
