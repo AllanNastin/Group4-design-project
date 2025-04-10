@@ -43,9 +43,10 @@ const RecommendedListings = () => {
     }, [apiUrl]);
 
     const handleClick = (listing) => {
-        navigate(`/listing/${listing.listing_id}/recommended`, {
+        const listing_state = { ...listing, current_price: listing.price }
+        navigate(`/listing/${listing.listing_id}/non/non/non/non/recommended`, {
             state: {
-                listing,
+                listing: listing_state,
                 from: "/search", // mark down resource from search
             },
         });
@@ -64,7 +65,7 @@ const RecommendedListings = () => {
                         transition={{ duration: 0.3 }}
                         className="text-center mt-5 d-flex flex-column align-items-center" // Center content
                     >
-                        <div style={{animation: "slideDown 0.6s ease-out"}}>
+                        <div style={{ animation: "slideDown 0.6s ease-out" }}>
                             <Spinner animation="border" role="status" className="mb-3">
                                 <span className="visually-hidden">Loading...</span>
                             </Spinner>
@@ -86,8 +87,8 @@ const RecommendedListings = () => {
                         {/* Optional: Add a retry button */}
                     </motion.div>
                 ) : recommended.length === 0 ? (
-                     // No Results State
-                     <motion.div
+                    // No Results State
+                    <motion.div
                         key="no-results"
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -107,31 +108,31 @@ const RecommendedListings = () => {
                     >
                         <h2 className="text-center mb-4">Recommended Properties</h2>
                         <Row>
-                {recommended.map((listing) => (
+                            {recommended.map((listing) => (
                                 <Col key={listing.listing_id} md={4} className="mb-4">
                                     <motion.div
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{
-                                opacity: 1,
-                                y: 0,
-                                scale:
-                                    hoveredId === null
-                                        ? 1
-                                        : hoveredId === listing.listing_id
-                                            ? 1.05
-                                            : 0.95,
-                                filter:
-                                    hoveredId === null
-                                        ? "brightness(1)"
-                                        : hoveredId === listing.listing_id
-                                            ? "brightness(1.05)"
-                                            : "brightness(0.8)",
-                            }}
-                            transition={{ duration: 0.4 }}
+                                        initial={{ opacity: 0, y: 30 }}
+                                        animate={{
+                                            opacity: 1,
+                                            y: 0,
+                                            scale:
+                                                hoveredId === null
+                                                    ? 1
+                                                    : hoveredId === listing.listing_id
+                                                        ? 1.05
+                                                        : 0.95,
+                                            filter:
+                                                hoveredId === null
+                                                    ? "brightness(1)"
+                                                    : hoveredId === listing.listing_id
+                                                        ? "brightness(1.05)"
+                                                        : "brightness(0.8)",
+                                        }}
+                                        transition={{ duration: 0.4 }}
                                         onMouseEnter={() => setHoveredId(listing.listing_id)}
                                         onMouseLeave={() => setHoveredId(null)}
                                     >
-                            <Card className="shadow-lg rounded-3 overflow-hidden">
+                                        <Card className="shadow-lg rounded-3 overflow-hidden">
                                             {listing.images?.[0] && (
                                                 <Card.Img
                                                     variant="top"
@@ -140,21 +141,21 @@ const RecommendedListings = () => {
                                                     style={{ height: "220px", objectFit: "cover" }}
                                                 />
                                             )}
-                                <Card.Body>
-                                    <Card.Title className="fs-5">{listing.address}</Card.Title>
-                                    <Card.Text>
+                                            <Card.Body>
+                                                <Card.Title className="fs-5">{listing.address}</Card.Title>
+                                                <Card.Text>
                                                     <strong>Price:</strong>{" "}
-                                        {listing.price ? `€${listing.price.toLocaleString()}` : "N/A"}
+                                                    {listing.price ? `€${listing.price.toLocaleString()}` : "N/A"}
                                                     <br />
-                                        <strong>Bedrooms:</strong> {listing.bedrooms ?? "N/A"} |{" "}
-                                        <strong>Bathrooms:</strong> {listing.bathrooms ?? "N/A"}
+                                                    <strong>Bedrooms:</strong> {listing.bedrooms ?? "N/A"} |{" "}
+                                                    <strong>Bathrooms:</strong> {listing.bathrooms ?? "N/A"}
                                                     <br />
                                                     <strong>Size:</strong>{" "}
-                                        {listing.size ? `${listing.size} m²` : "N/A"}
-                                        <br />
+                                                    {listing.size ? `${listing.size} m²` : "N/A"}
+                                                    <br />
                                                 </Card.Text>
 
-                                    <Button variant="primary" onClick={() => handleClick(listing)}>
+                                                <Button variant="primary" onClick={() => handleClick(listing)}>
                                                     View Details
                                                 </Button>
                                             </Card.Body>

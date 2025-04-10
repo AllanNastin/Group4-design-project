@@ -1,22 +1,44 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Container, Row, Col, Card, Button, ListGroup } from "react-bootstrap";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import axios from 'axios';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const IndividualListings = () => {
-  const { id, commute } = useParams();
+  const { id, carParam, walkParam, cyclingParam, publicTransportParam, commute } = useParams();
+  const car = carParam !== "non" ? carParam : null;
+  const walk = walkParam !== "non" ? walkParam : null;
+  const cycling = cyclingParam !== "non" ? cyclingParam : null;
+  const publicTransport = publicTransportParam !== "non" ? publicTransportParam : null;
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const { state } = useLocation();
+  const apiUrl = process.env.REACT_APP_API_URL;
+
+
+  const chartRef = useRef(null);
+  const [data, setData] = useState({
+    labels: [],
+    datasets: [
+      {
+        label: 'Price History',
+        data: [],
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+      },
+    ],
+  });
+
   const location = useLocation();
   const isFromRecommended = location.pathname.includes("recommended");
+
 
   useEffect(() => {
     if (!id) {
@@ -25,65 +47,87 @@ const IndividualListings = () => {
       return;
     }
 
+    const getListing = async () => {
+      try {
+        const response = await axios.get(`${apiUrl}/getListing`, {
+          params: {
+            listing_id: id
+          }
+        });
+
+        if (response.status === 200) {
+          setListing(response.data);
+          setLoading(false);
+        }
+        else {
+          setError(`(${response.status}) Error loading listing`);
+        }
+      } catch (error) {
+        setError(error);
+      }
+    };
+
+    const checkIfSaved = async () => {
+      try {
+        const google_token = localStorage.getItem("google_token")
+        const response = await axios.get(`${apiUrl}/isSaved`, {
+          params: {
+            id_token: google_token,
+            listing_url: window.location.href
+          }
+        });
+        setIsSaved(response.data.exists);
+      }
+      catch (error) {
+        setError(error);
+      }
+    }
+
+
     if (state && state.listing) {
       const listingData = state.listing;
-
       setListing(listingData);
+      setIsSaved(state.isSaved);
       setLoading(false);
-
-      let savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
-      savedListings = savedListings.filter(savedItem => savedItem !== null && savedItem !== undefined);
-      sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
-      setIsSaved(savedListings.some(savedItem => savedItem.listing_id === parseInt(id)));
     } else {
-      setError(`Listing data is not available.`);
-      setLoading(false);
+      getListing();
+      checkIfSaved();
     }
-  }, [id, commute, state, navigate]);
+  }, [id, commute, state, navigate, apiUrl]); // apiUrl is included to get rid of warning
 
   useEffect(() => {
     if (listing) {
-      const savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
-      const isListingSaved = savedListings.some(savedItem => savedItem.listing_id === parseInt(id));
-      setIsSaved(isListingSaved);
+      setData({
+        labels: [...listing.price_dates],
+        datasets: [
+          {
+            label: 'Price History',
+            data: [...listing.price_history],
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          },
+        ],
+      });
     }
   }, [listing, id]);
 
-  const saveListingData = (listingToSave) => {
-    return {
-      listing_id: listingToSave.listing_id,
-      address: listingToSave.address,
-      eircode: listingToSave.eircode,
-      price: listingToSave.price,
-      bedrooms: listingToSave.bedrooms,
-      bathrooms: listingToSave.bathrooms,
-      size: listingToSave.size,
-      commute_times: listingToSave.commute_times,
-      description: listingToSave.description,
-      images: listingToSave.images,
-      price_dates: listingToSave.price_dates,
-      price_history: listingToSave.price_history,
-      commute: commute, // Include commute from URL
-      url: listingToSave.url,
-    };
-  };
+  useEffect(() => {
+    if (chartRef.current) {
+      chartRef.current.update();
+    }
+  }, [data]);
 
-  const handleSaveListing = () => {
-    let savedListings = JSON.parse(sessionStorage.getItem("savedListings")) || [];
-    savedListings = savedListings.filter(savedItem => savedItem !== null && savedItem !== undefined);
+  const handleSaveListing = async (isSaved) => {
+    const token = localStorage.getItem("google_token");
+    const currentUrl = window.location.href;
 
     if (isSaved) {
-      const updatedListings = savedListings.filter(savedItem => savedItem.listing_id !== parseInt(id));
-      sessionStorage.setItem("savedListings", JSON.stringify(updatedListings));
+      await axios.delete(`${apiUrl}/unsaveListing?id_token=${token}&url_to_unsave=${currentUrl}`);
       setIsSaved(false);
-    } else {
-      const alreadySaved = savedListings.some(savedItem => savedItem.listing_id === parseInt(id));
-      if (!alreadySaved) {
-        const listingDataToSave = saveListingData(listing); // Save data with the function
-        savedListings.push(listingDataToSave);
-        sessionStorage.setItem("savedListings", JSON.stringify(savedListings));
-        setIsSaved(true);
-      }
+    }
+    else {
+      await axios.post(`${apiUrl}/saveListing?id_token=${token}&url_to_save=${currentUrl}`);
+      setIsSaved(true);
     }
   };
 
@@ -91,24 +135,13 @@ const IndividualListings = () => {
   if (error) return <p className="text-danger text-center mt-5">{error}</p>;
   if (!listing) return <p className="text-center mt-5">No listing found.</p>;
 
-  const data = {
-    labels: listing.price_dates,
-    datasets: [
-      {
-        label: 'Price History',
-        data: listing.price_history,
-        borderColor: 'rgba(75, 192, 192, 1)',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-      },
-    ],
-  };
-
   const handleBackClick = () => {
     if (state?.from === "/search") {
       navigate("/search");
     } else if (state?.from === "/listings") {
       const listingsData = state?.listingsData;
-      const commute = state?.commute;
+      //const commute = state?.commute;
+      let commute = "FIX";
       navigate("/listings", { state: { listingsData, commute } });
     } else {
       navigate(-1); // fallback
@@ -126,7 +159,7 @@ const IndividualListings = () => {
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center">
                 <Card.Title className="text-center fs-3 fw-bold">{listing.address}</Card.Title>
-                <Button variant="link" className="p-0" onClick={handleSaveListing}>
+                <Button variant="link" className="p-0" onClick={() => { handleSaveListing(isSaved) }}>
                   {isSaved ? <FaHeart color="red" size={24} /> : <FaRegHeart color="gray" size={24} />}
                 </Button>
               </div>
@@ -146,16 +179,20 @@ const IndividualListings = () => {
                   </ListGroup>
                 </Col>
                 {!isFromRecommended && (
-                <Col md={6}>
-                  <h5 className="fw-bold">Commute Times:</h5>
-                  <ListGroup variant="flush">
-                    <ListGroup.Item>🚗 By Car: {listing.commute_times?.car} min</ListGroup.Item>
-                    <ListGroup.Item>🚶‍ By Walk: {listing.commute_times?.walk} min</ListGroup.Item>
-                    <ListGroup.Item>🚲 By Cycling: {listing.commute_times?.cycling} min</ListGroup.Item>
-                    <ListGroup.Item>🚌 By Public Transport: {listing.commute_times?.public} min</ListGroup.Item>
-                  </ListGroup>
-                </Col>
-                    )}
+                  <Col md={6}>
+                    {(car || walk || cycling || publicTransport) &&
+                      <div>
+                        <h5 className="fw-bold">Commute Times:</h5>
+                        <ListGroup variant="flush">
+                          {car && <ListGroup.Item>🚗 By Car: {car} min</ListGroup.Item>}
+                          {walk && <ListGroup.Item>🚶‍ By Walk: {walk} min</ListGroup.Item>}
+                          {cycling && <ListGroup.Item>🚲 By Cycling: {cycling} min</ListGroup.Item>}
+                          {publicTransport && <ListGroup.Item>🚌 By Public Transport: {publicTransport} min</ListGroup.Item>}
+                        </ListGroup>
+                      </div>
+                    }
+                  </Col>
+                )}
               </Row>
 
               <hr />
@@ -165,8 +202,8 @@ const IndividualListings = () => {
                 <Button variant="secondary" onClick={handleBackClick}>
                   ← Back
                 </Button>
-                <Button 
-                  variant="success" 
+                <Button
+                  variant="success"
                   onClick={() => window.open(`https://www.daft.ie${listing.url}`, '_blank')}
                 >
                   Go To Listing
@@ -175,7 +212,7 @@ const IndividualListings = () => {
 
               <hr />
               <h5 className="fw-bold text-center">Price History</h5>
-              <Line data={data} />
+              <Line ref={chartRef} data={data} />
             </Card.Body>
           </Card>
         </Col>

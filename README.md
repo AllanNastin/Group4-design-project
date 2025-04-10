@@ -30,15 +30,21 @@ For the recommended deployment (docker), make sure you have Docker installed on 
 - On the Credentials page, click Create credentials > API key.
 - Copy the API key.
 
-3. Set up `.env`
+3. Set up Google OAuth
+- In Google Cloud, navigate to 'API & Services > Credentials' to create a new OAuth application
+- In the application, put your domain url as Authorised JavaScript origins and also Authorised redicted URIs
+- Once created, copy the Client ID
+- If run into a problem, visit [This blog](https://medium.com/@tony.infisical/guide-to-using-oauth-2-0-to-access-google-apis-dead94d6866d)
+
+4. Set up `.env`
 - rename [.env.example](https://github.com/AllanNastin/Group4-design-project/blob/main/backend/.env.example) to `.env`
 - fill in each line as explained in the comments
 
-4. Run Backend & Database
+5. Run Backend & Database
 - navigate to backend directory `cd backend`
 - run backend & database using `docker-compose up --build`
 
-5. Run frontend
+6. Run frontend
 
 - npm
   - from root directory, navigate to frontend directory `cd frontend`
