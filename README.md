@@ -37,7 +37,7 @@ For the recommended deployment (docker), make sure you have Docker installed on 
 - If run into a problem, visit [This blog](https://medium.com/@tony.infisical/guide-to-using-oauth-2-0-to-access-google-apis-dead94d6866d)
 
 4. Set up `.env`
-- rename [.env.example](https://github.com/AllanNastin/Group4-design-project/blob/dev/backend/.env.example) to `.env`
+- rename [.env.example](https://github.com/AllanNastin/Group4-design-project/blob/main/backend/.env.example) to `.env`
 - fill in each line as explained in the comments
 
 5. Run Backend & Database
